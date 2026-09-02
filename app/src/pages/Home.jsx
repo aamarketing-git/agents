@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fmtDate, josa, today, useStore } from '../store'
 import { dailyQuote, followupStatus, roadmap, weeklyReport } from '../lib/coaching'
@@ -14,6 +15,8 @@ export default function Home() {
   const due = state.customers.filter((c) => followupStatus(c).diff <= 0)
   const rm = roadmap(state)
   const wk = weeklyReport(state)
+  const [ask, setAsk] = useState('')
+  const goAsk = (t) => nav('/coach?q=' + encodeURIComponent(t))
   const hour = new Date().getHours()
   const greet = hour < 11 ? '좋은 아침입니다' : hour < 17 ? '활기찬 오후입니다' : '수고 많으셨습니다'
 
@@ -44,6 +47,16 @@ export default function Home() {
             <span className="stat"><b>{rm.current + 1}</b>/5 성장 단계</span>
           </div>
         </section>
+
+        <Section eyebrow="Ask" title={`${profile.aiName}에게 물어보기`}>
+          <form className="row" onSubmit={(e) => { e.preventDefault(); if (ask.trim()) goAsk(ask.trim()) }}>
+            <input className="input" value={ask} onChange={(e) => setAsk(e.target.value)} placeholder="예: 오늘 연락할 고객 누구야?" />
+            <button className="btn btn-primary" style={{ flex: 'none', width: 'auto', padding: '0 18px' }} type="submit">질문</button>
+          </form>
+          <div className="chips">
+            {['오늘 관리 대상', '내일 챙길 사람', '연락 오래 안 한 고객', '이번 주 정리'].map((t) => <button key={t} type="button" className="chip" onClick={() => goAsk(t)}>{t}</button>)}
+          </div>
+        </Section>
 
         <Section eyebrow="Menu" title="무엇을 할까요?">
         <div className="tile-grid">

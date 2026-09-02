@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { askAI } from '../lib/ai'
 import { roadmap, weeklyReport } from '../lib/coaching'
+import { answerLocally, buildContext } from '../lib/assistant'
 import { Disclosure, Section, TopBar, notify } from '../components/ui'
 import VoiceInput from '../components/VoiceInput'
 
@@ -10,6 +11,11 @@ import VoiceInput from '../components/VoiceInput'
    AI 코치 : "성장하는 커스텀 AI 주인"을 위한 성장 로드맵 + 제품·사업·SNS 질문
    ========================================================= */
 const QUICK = [
+  '오늘 연락할 고객 누구야?',
+  '내일 관리 대상 알려줘',
+  '이번 주 일정과 챙길 사람 정리해줘',
+  '연락 오래 안 한 고객은?',
+  '결정에 가까운 고객은 누구야?',
   '고객이 가격이 비싸다고 할 때 어떻게 답하죠?',
   '오랫동안 연락 안 한 고객에게 첫 카톡 어떻게 보내죠?',
   'SNS에 매일 뭘 올려야 할지 모르겠어요',
@@ -31,8 +37,9 @@ function localCoach(q, profile) {
 export default function Coach() {
   const { state, dispatch } = useStore()
   const nav = useNavigate()
-  const [q, setQ] = useState('')
-  const [a, setA] = useState('')
+  const [params] = useSearchParams()
+  const [q, setQ] = useState(params.get('q') || '')
+  const [a, setA] = useState(null) // { text, customers, actions, source }
   const [loading, setLoading] = useState(false)
   const [note, setNote] = useState('')
   const rm = roadmap(state)
@@ -43,11 +50,14 @@ export default function Coach() {
     if (!text) return
     setQ(text)
     setLoading(true)
-    const r = await askAI('coach', { question: text }, state.profile, () => localCoach(text, state.profile))
-    setA(r.text)
+    const local = answerLocally(text, state)
+    const r = await askAI('coach', { question: text, context: buildContext(state) }, state.profile, () => local?.text || localCoach(text, state.profile))
+    setA({ text: r.text, source: r.source, customers: local?.customers || [], actions: local?.actions || [], intent: local?.intent })
+    setTimeout(() => document.getElementById('answer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
     dispatch({ type: 'coach.asked' })
     setLoading(false)
   }
+  useEffect(() => { const init = params.get('q'); if (init) ask(init) }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
@@ -58,6 +68,38 @@ export default function Coach() {
           <h2>일정관리 → 고객관리 → 자기관리 → 성장 → 성공</h2>
           <p>{state.profile.userName}님은 지금 <b>{rm.stages[rm.current].title}</b>에 있습니다.</p>
         </div>
+
+        <Section eyebrow="Ask" title={`${state.profile.aiName}에게 물어보기`} aside={`${state.progress.coachAsked || 0}회 질문`}>
+        <div className="card">
+          <p className="muted">제품 · 사업 · SNS · 마음관리, 무엇이든.</p>
+          <div className="chips">
+            {QUICK.slice(0, 5).map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
+          </div>
+          <details><summary className="small" style={{ cursor: 'pointer', color: 'var(--navy)' }}>코칭 질문 예시 더 보기</summary><div className="chips mt">
+            {QUICK.slice(5).map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
+          </div></details>
+          <div className="chips" hidden>
+          </div>
+          <VoiceInput value={q} onChange={setQ} rows={3} placeholder="말로 물어보셔도 됩니다" />
+          <button className="btn btn-green" onClick={() => ask()} disabled={loading || !q.trim()}>{loading ? '생각 중…' : '질문하기'}</button>
+          {a && (
+            <div className="fb" id="answer" style={{ scrollMarginTop: 80 }}>
+              <div className="ai-bubble green">{a.text}</div>
+              {a.customers?.length > 0 && (
+                <div className="chips">
+                  {a.customers.map((c) => <button key={c.id} type="button" className="chip on-green" onClick={() => nav(`/customers/${c.id}`)}>👤 {c.name}</button>)}
+                </div>
+              )}
+              {a.actions?.length > 0 && (
+                <div className="row" style={{ flexWrap: 'wrap' }}>
+                  {a.actions.map((x) => <button key={x.to} className="btn btn-soft btn-sm" onClick={() => nav(x.to)}>{x.label} →</button>)}
+                </div>
+              )}
+              {a.source === 'local' && a.intent && <p className="small muted">내 고객·일정 데이터에서 찾은 답입니다.</p>}
+            </div>
+          )}
+        </div>
+        </Section>
 
         <Section eyebrow="Weekly" title="이번 주 리포트" aside="최근 7일">
           <div className="row" style={{ flexWrap: 'wrap' }}>
@@ -94,17 +136,6 @@ export default function Coach() {
         </Disclosure>
         </Section>
 
-        <Section eyebrow="Ask" title={`${state.profile.aiName}에게 물어보기`} aside={`${state.progress.coachAsked || 0}회 질문`}>
-        <div className="card">
-          <p className="muted">제품 · 사업 · SNS · 마음관리, 무엇이든.</p>
-          <div className="chips">
-            {QUICK.map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
-          </div>
-          <VoiceInput value={q} onChange={setQ} rows={3} placeholder="말로 물어보셔도 됩니다" />
-          <button className="btn btn-green" onClick={() => ask()} disabled={loading || !q.trim()}>{loading ? '생각 중…' : '질문하기'}</button>
-          {a && <div className="ai-bubble green">{a}</div>}
-        </div>
-        </Section>
 
         <Section eyebrow="Notes" title="성장 노트" aside={`${state.notes.length}개`}>
         <Disclosure icon="📓" title="오늘 배운 점 남기기">

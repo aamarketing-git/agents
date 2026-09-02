@@ -46,7 +46,9 @@ export default function Content() {
   const [kind, setKind] = useState(params.get('kind') && KINDS[params.get('kind')] ? params.get('kind') : 'SNS 게시글')
   const [audience, setAudience] = useState(params.get('to') || '')
   const [topic, setTopic] = useState('')
-  const [points, setPoints] = useState('')
+  const matched = state.customers.find((c) => c.name === (params.get('to') || ''))
+  const lastMemo = matched ? state.meetings.filter((m) => m.customerId === matched.id && m.done).sort((a, b) => (a.date < b.date ? 1 : -1))[0] : null
+  const [points, setPoints] = useState(matched ? [matched.family && `기억할 것: ${matched.family}`, lastMemo?.memo && `최근 대화: ${lastMemo.memo.slice(0, 60)}`, lastMemo?.nextAction && `약속: ${lastMemo.nextAction}`].filter(Boolean).join('\n') : '')
   const [tone, setTone] = useState(TONES[0])
   const [out, setOut] = useState('')
   const [source, setSource] = useState('')
@@ -84,6 +86,7 @@ export default function Content() {
           <p className="small muted">{KINDS[kind].hint}</p>
         </div>
 
+        {matched && <div className="card soft-green" style={{ padding: 12 }}><p className="small"><b>{matched.name}님 정보를 연결했습니다.</b> 가족·최근 대화·약속을 "꼭 넣을 내용"에 미리 채웠어요. 필요 없는 줄은 지우세요.</p></div>}
         <div className="field">
           <label>받는 사람 (선택)</label>
           <input className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="예: 박미영 원장님, 우리 팀, 팔로워" />
