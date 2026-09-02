@@ -5,6 +5,7 @@
 - 기획서: [docs/PLAN.md](docs/PLAN.md)
 - 리서치 1 · 직종·기능·영업 베스트프랙티스: [docs/RESEARCH_MARKET.md](docs/RESEARCH_MARKET.md)
 - 리서치 2 · 수익모델(광고 vs 구독): [docs/RESEARCH_MONETIZATION.md](docs/RESEARCH_MONETIZATION.md)
+- 리서치 3 · 다음 기능 우선순위: [docs/RESEARCH_NEXT_FEATURES.md](docs/RESEARCH_NEXT_FEATURES.md)
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
 
