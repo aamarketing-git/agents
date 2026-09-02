@@ -9,6 +9,11 @@
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
 
+## 바로 열기
+
+- 휴대폰·PC 공용 주소(GitHub Pages): https://aamarketing-git.github.io/agents/  
+  휴대폰 브라우저에서 열고 "홈 화면에 추가"하면 앱처럼 사용할 수 있습니다.
+
 ## 실행
 
 ```bash
