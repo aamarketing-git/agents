@@ -1,0 +1,2 @@
+# Google AdSense 승인 후 발급받은 줄을 여기에 붙여넣으세요. 예:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
