@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { Disclosure, TopBar } from '../components/ui'
+import { Disclosure, TopBar, notify } from '../components/ui'
 import AdSlot from '../components/AdSlot'
 
 /* =========================================================
@@ -59,7 +59,7 @@ export default function Education() {
         {cur.lessons.map((l) => (
           <Disclosure key={l.id} icon={done[l.id] ? '✅' : cur.ico} title={l.t} done={!!done[l.id]}>
             <p>{l.body}</p>
-            {!done[l.id] && <button className="btn btn-green" onClick={() => dispatch({ type: 'education.done', id: l.id })}>읽었어요 · 완료</button>}
+            {!done[l.id] && <button className="btn btn-green" onClick={() => { dispatch({ type: 'education.done', id: l.id }); notify(`완료! ${doneN + 1} / ${total} 강의`) }}>읽었어요 · 완료</button>}
           </Disclosure>
         ))}
         <AdSlot slot={import.meta.env.VITE_ADSENSE_SLOT_LIST} />

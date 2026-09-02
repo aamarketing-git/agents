@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useStore } from './store'
-import { BottomNav } from './components/ui'
+import { BottomNav, Toaster } from './components/ui'
 import Onboarding from './pages/Onboarding'
 import Home from './pages/Home'
 import Today from './pages/Today'
@@ -42,6 +42,7 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {ready && pathname !== '/start' && <BottomNav />}
+      <Toaster />
     </div>
   )
 }

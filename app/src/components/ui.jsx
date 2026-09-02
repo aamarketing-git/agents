@@ -94,3 +94,38 @@ export function Empty({ icon = '📭', text, action }) {
     </div>
   )
 }
+
+/* 섹션 : 눈썹 라벨 + 제목 + 우측 보조 정보, 위쪽 구분선으로 영역을 명확히 나눔 */
+export function Section({ eyebrow, title, aside, children, className = '' }) {
+  return (
+    <section className={'section ' + className}>
+      <div className="section-head">
+        <div>
+          {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+          <h3>{title}</h3>
+        </div>
+        {aside && <span className="aside">{aside}</span>}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+/* 전역 알림(토스트) : 어느 화면에서든 notify('저장했습니다') */
+export function notify(msg) {
+  window.dispatchEvent(new CustomEvent('app:toast', { detail: msg }))
+}
+export function Toaster() {
+  const [msg, setMsg] = useState('')
+  useEffect(() => {
+    const on = (e) => setMsg(e.detail)
+    window.addEventListener('app:toast', on)
+    return () => window.removeEventListener('app:toast', on)
+  }, [])
+  useEffect(() => {
+    if (!msg) return
+    const t = setTimeout(() => setMsg(''), 2400)
+    return () => clearTimeout(t)
+  }, [msg])
+  return msg ? <div className="toast" role="status">{msg}</div> : null
+}

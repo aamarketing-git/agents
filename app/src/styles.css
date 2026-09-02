@@ -3,9 +3,9 @@
    40~60대 사용자를 위한 큰 글자 · 큰 버튼 · 높은 대비
    ========================================================= */
 :root {
-  --purple: #5B3FA6;
-  --purple-dark: #46307F;
-  --purple-soft: #EFE9FA;
+  --navy: #1E3A5F;
+  --navy-dark: #152B47;
+  --navy-soft: #E6ECF4;
   --green: #2F8F5B;
   --green-dark: #24704A;
   --green-soft: #E4F3EA;
@@ -100,7 +100,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px; font-weight: 600; color: var(--muted);
 }
 .bottomnav a .ico { font-size: 24px; line-height: 1; }
-.bottomnav a.active { color: var(--purple); }
+.bottomnav a.active { color: var(--navy); }
 .bottomnav a.active .ico { transform: translateY(-1px); }
 
 /* ---------- 버튼 ---------- */
@@ -115,11 +115,11 @@ a { color: inherit; text-decoration: none; }
 }
 .btn:active { transform: scale(0.985); }
 .btn:disabled { opacity: .5; cursor: default; }
-.btn-primary { background: var(--purple); color: var(--white); }
-.btn-primary:hover { background: var(--purple-dark); }
+.btn-primary { background: var(--navy); color: var(--white); }
+.btn-primary:hover { background: var(--navy-dark); }
 .btn-green { background: var(--green); color: var(--white); }
 .btn-green:hover { background: var(--green-dark); }
-.btn-soft { background: var(--purple-soft); color: var(--purple-dark); }
+.btn-soft { background: var(--navy-soft); color: var(--navy-dark); }
 .btn-soft-green { background: var(--green-soft); color: var(--green-dark); }
 .btn-outline { background: var(--white); color: var(--ink); border: 2px solid var(--line); }
 .btn-ghost { background: transparent; color: var(--ink-soft); min-height: 48px; }
@@ -144,11 +144,11 @@ a { color: inherit; text-decoration: none; }
 .tile .ico { font-size: 30px; line-height: 1; }
 .tile .label { font-size: var(--fs-base); font-weight: 800; }
 .tile .sub { font-size: 14px; color: var(--muted); font-weight: 500; }
-.tile.purple { background: var(--purple); color: var(--white); }
-.tile.purple .sub { color: rgba(255,255,255,.75); }
+.tile.navy { background: var(--navy); color: var(--white); }
+.tile.navy .sub { color: rgba(255,255,255,.75); }
 .tile.green { background: var(--green); color: var(--white); }
 .tile.green .sub { color: rgba(255,255,255,.75); }
-.tile.soft { background: var(--purple-soft); }
+.tile.soft { background: var(--navy-soft); }
 .tile.soft-green { background: var(--green-soft); }
 .tile.wide { grid-column: 1 / -1; flex-direction: row; align-items: center; min-height: 84px; gap: 14px; }
 .tile.wide .ico { font-size: 34px; }
@@ -159,7 +159,7 @@ a { color: inherit; text-decoration: none; }
   padding: 18px; box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 10px;
 }
-.card.soft { background: var(--purple-soft); box-shadow: none; }
+.card.soft { background: var(--navy-soft); box-shadow: none; }
 .card.soft-green { background: var(--green-soft); box-shadow: none; }
 .card.ivory { background: var(--ivory-dark); box-shadow: none; }
 .card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -181,7 +181,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- 인사 히어로 ---------- */
 .hero {
-  background: linear-gradient(160deg, var(--purple) 0%, var(--purple-dark) 100%);
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-dark) 100%);
   color: var(--white); border-radius: 12px; padding: 24px 20px;
   display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden;
 }
@@ -206,15 +206,15 @@ a { color: inherit; text-decoration: none; }
   font-size: var(--fs-base);
 }
 .textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
-.input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--purple); }
+.input:focus, .textarea:focus, .select:focus { outline: none; border-color: var(--navy); }
 .row { display: flex; gap: 10px; align-items: center; }
 .row > * { flex: 1; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-  border: 2px solid var(--line); background: var(--white); border-radius: 999px;
+  border: 2px solid var(--line); background: var(--white); border-radius: 6px;
   padding: 10px 16px; min-height: 48px; font-weight: 600; font-size: var(--fs-sm); cursor: pointer;
 }
-.chip.on { border-color: var(--purple); background: var(--purple-soft); color: var(--purple-dark); }
+.chip.on { border-color: var(--navy); background: var(--navy-soft); color: var(--navy-dark); }
 .chip.on-green { border-color: var(--green); background: var(--green-soft); color: var(--green-dark); }
 
 /* 음성 입력 */
@@ -223,7 +223,7 @@ a { color: inherit; text-decoration: none; }
 .voice-bar { position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; gap: 8px; align-items: center; }
 .mic {
   display: inline-flex; align-items: center; gap: 8px;
-  min-height: 46px; padding: 0 16px; border-radius: 999px; border: none;
+  min-height: 46px; padding: 0 16px; border-radius: 8px; border: none;
   background: var(--green); color: var(--white); font-weight: 700; cursor: pointer;
 }
 .mic.rec { background: var(--danger); animation: pulse 1.2s infinite; }
@@ -240,14 +240,14 @@ a { color: inherit; text-decoration: none; }
 .avatar {
   width: 52px; height: 52px; border-radius: 50%; flex: none;
   display: flex; align-items: center; justify-content: center;
-  background: var(--purple-soft); color: var(--purple-dark); font-weight: 800; font-size: var(--fs-lg);
+  background: var(--navy-soft); color: var(--navy-dark); font-weight: 800; font-size: var(--fs-lg);
 }
 .avatar.green { background: var(--green-soft); color: var(--green-dark); }
 .list-item .main { flex: 1; min-width: 0; }
 .list-item .name { font-weight: 800; }
 .list-item .meta { font-size: 14px; color: var(--muted); }
-.badge { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--ivory-dark); color: var(--ink-soft); white-space: nowrap; }
-.badge.purple { background: var(--purple-soft); color: var(--purple-dark); }
+.badge { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 4px; background: var(--ivory-dark); color: var(--ink-soft); white-space: nowrap; }
+.badge.navy { background: var(--navy-soft); color: var(--navy-dark); }
 .badge.green { background: var(--green-soft); color: var(--green-dark); }
 .badge.amber { background: #FBF1DC; color: var(--amber); }
 .badge.red { background: #FBECEC; color: var(--danger); }
@@ -256,11 +256,11 @@ a { color: inherit; text-decoration: none; }
 .steps { display: flex; gap: 6px; }
 .steps span { flex: 1; height: 8px; border-radius: 4px; background: var(--line); }
 .steps span.done { background: var(--green); }
-.steps span.now { background: var(--purple); }
+.steps span.now { background: var(--navy); }
 .step-num {
   width: 40px; height: 40px; border-radius: 50%; flex: none;
   display: flex; align-items: center; justify-content: center;
-  background: var(--purple); color: var(--white); font-weight: 800;
+  background: var(--navy); color: var(--white); font-weight: 800;
 }
 .step-num.done { background: var(--green); }
 
@@ -289,7 +289,7 @@ a { color: inherit; text-decoration: none; }
 .empty { text-align: center; padding: 28px 16px; color: var(--muted); display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .empty .ico { font-size: 44px; }
 .ai-bubble {
-  background: var(--purple-soft); border-radius: 10px 10px 10px 2px; padding: 14px 16px; line-height: 1.6; white-space: pre-wrap;
+  background: var(--navy-soft); border-radius: 10px 10px 10px 2px; padding: 14px 16px; line-height: 1.6; white-space: pre-wrap;
 }
 .ai-bubble.green { background: var(--green-soft); }
 .toast {
@@ -305,7 +305,35 @@ a { color: inherit; text-decoration: none; }
 .roadmap .rail { display: flex; flex-direction: column; align-items: center; }
 .roadmap .rail .dot { width: 22px; height: 22px; border-radius: 50%; background: var(--line); flex: none; border: 4px solid var(--white); box-shadow: 0 0 0 2px var(--line); }
 .roadmap .rail .dot.done { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
-.roadmap .rail .dot.now { background: var(--purple); box-shadow: 0 0 0 2px var(--purple); }
+.roadmap .rail .dot.now { background: var(--navy); box-shadow: 0 0 0 2px var(--navy); }
 .roadmap .rail .bar { width: 4px; flex: 1; min-height: 28px; background: var(--line); }
 .roadmap .node .txt { padding-bottom: 20px; }
 .roadmap .node .txt b { display: block; font-size: var(--fs-base); }
+
+/* ---------- 섹션 구분 ---------- */
+.section { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; border-top: 2px solid var(--line); }
+.section:first-child, .hero + .section { border-top: none; padding-top: 0; }
+.section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.section-head .eyebrow { display: block; font-size: 12px; font-weight: 800; letter-spacing: .08em; color: var(--navy); text-transform: uppercase; margin-bottom: 2px; }
+.section-head h3 { font-size: var(--fs-lg); }
+.section-head .aside { font-size: var(--fs-sm); color: var(--muted); font-weight: 600; white-space: nowrap; }
+
+/* 단계(파이프라인) 스테퍼 */
+.stage-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+.stage-row button {
+  border: none; background: var(--ivory-dark); color: var(--muted);
+  min-height: 56px; padding: 6px 2px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; line-height: 1.2;
+}
+.stage-row button.done { background: var(--green-soft); color: var(--green-dark); }
+.stage-row button.now { background: var(--navy); color: var(--white); }
+
+/* 피드백 구조 블록 */
+.fb { display: flex; flex-direction: column; gap: 10px; }
+.fb .fb-row { display: flex; gap: 10px; align-items: flex-start; background: var(--white); border-left: 4px solid var(--line); padding: 10px 12px; border-radius: 0 6px 6px 0; }
+.fb .fb-row.good { border-left-color: var(--green); }
+.fb .fb-row.warn { border-left-color: var(--amber); }
+.fb .fb-row.plan { border-left-color: var(--navy); }
+.fb .fb-row.act { border-left-color: var(--danger); }
+.fb .fb-row b { flex: none; min-width: 84px; font-size: var(--fs-sm); }
+.score { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.score b { font-size: var(--fs-xxl); color: var(--navy); font-variant-numeric: tabular-nums; }

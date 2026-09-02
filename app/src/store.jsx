@@ -141,3 +141,14 @@ export function josa(word, pair = '와/과') {
   const hasFinal = (code - 0xac00) % 28 !== 0
   return word + (hasFinal ? b : a)
 }
+
+/* 고객 단계(파이프라인) : 신규 → 관계 형성 → 제안 → 결정 대기 → 계약 → 소개 요청 */
+export const STAGES = [
+  { id: 'new', label: '신규', short: '신규' },
+  { id: 'rapport', label: '관계 형성', short: '관계' },
+  { id: 'proposal', label: '제안', short: '제안' },
+  { id: 'decision', label: '결정 대기', short: '결정' },
+  { id: 'closed', label: '계약', short: '계약' },
+  { id: 'referral', label: '소개 요청', short: '소개' },
+]
+export const stageIndex = (id) => Math.max(0, STAGES.findIndex((s) => s.id === (id || 'new')))

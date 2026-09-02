@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { askAI } from '../lib/ai'
-import { roadmap } from '../lib/coaching'
-import { Disclosure, TopBar } from '../components/ui'
+import { roadmap, weeklyReport } from '../lib/coaching'
+import { Disclosure, Section, TopBar, notify } from '../components/ui'
 import VoiceInput from '../components/VoiceInput'
 
 /* =========================================================
@@ -36,6 +36,7 @@ export default function Coach() {
   const [loading, setLoading] = useState(false)
   const [note, setNote] = useState('')
   const rm = roadmap(state)
+  const wk = weeklyReport(state)
 
   const ask = async (question) => {
     const text = (question || q).trim()
@@ -58,7 +59,20 @@ export default function Coach() {
           <p>{state.profile.userName}님은 지금 <b>{rm.stages[rm.current].title}</b>에 있습니다.</p>
         </div>
 
-        <Disclosure icon="🗺️" title="나의 성장 로드맵" open>
+        <Section eyebrow="Weekly" title="이번 주 리포트" aside="최근 7일">
+          <div className="row" style={{ flexWrap: 'wrap' }}>
+            <span className="badge navy">만남 {wk.meetings}</span>
+            <span className="badge">연락 {wk.contacts}</span>
+            <span className="badge">새 고객 {wk.newCustomers}</span>
+            <span className="badge green">계약 {wk.closed}</span>
+            <span className="badge amber">콘텐츠 {wk.contents}</span>
+            <span className="badge">노트 {wk.notes}</span>
+          </div>
+          <div className="ai-bubble green">{wk.comment}</div>
+        </Section>
+
+        <Section eyebrow="Roadmap" title="나의 성장 로드맵" aside={`${rm.current + 1} / 5`}>
+        <Disclosure icon="🗺️" title="단계별 진행 보기" open>
           <div className="roadmap">
             {rm.stages.map((s, i) => (
               <div key={s.key} className="node">
@@ -78,9 +92,10 @@ export default function Coach() {
             ))}
           </div>
         </Disclosure>
+        </Section>
 
+        <Section eyebrow="Ask" title={`${state.profile.aiName}에게 물어보기`} aside={`${state.progress.coachAsked || 0}회 질문`}>
         <div className="card">
-          <h3>🌱 {state.profile.aiName}에게 물어보기</h3>
           <p className="muted">제품 · 사업 · SNS · 마음관리, 무엇이든.</p>
           <div className="chips">
             {QUICK.map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
@@ -89,13 +104,16 @@ export default function Coach() {
           <button className="btn btn-green" onClick={() => ask()} disabled={loading || !q.trim()}>{loading ? '생각 중…' : '질문하기'}</button>
           {a && <div className="ai-bubble green">{a}</div>}
         </div>
+        </Section>
 
-        <Disclosure icon="📓" title={`성장 노트 ${state.notes.length}개`}>
+        <Section eyebrow="Notes" title="성장 노트" aside={`${state.notes.length}개`}>
+        <Disclosure icon="📓" title="오늘 배운 점 남기기">
           <p className="muted small">오늘 배운 점, 감사한 일, 내일 할 한 가지. 짧게 남기세요.</p>
           <VoiceInput value={note} onChange={setNote} rows={3} placeholder="예: 오늘 박 원장님과 대화에서 경청의 힘을 느꼈다" />
-          <button className="btn btn-soft" disabled={!note.trim()} onClick={() => { dispatch({ type: 'note.add', data: { text: note.trim() } }); setNote('') }}>노트 저장</button>
+          <button className="btn btn-soft" disabled={!note.trim()} onClick={() => { dispatch({ type: 'note.add', data: { text: note.trim() } }); setNote(''); notify('성장 노트를 저장했습니다') }}>노트 저장</button>
           {state.notes.slice(0, 5).map((n) => <div key={n.id} className="card ivory" style={{ padding: 12 }}><p className="small muted">{n.date}</p><p>{n.text}</p></div>)}
         </Disclosure>
+        </Section>
 
         <div className="row">
           <button className="btn btn-outline" onClick={() => nav('/education')}>🎓 교육센터</button>

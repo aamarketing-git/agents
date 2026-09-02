@@ -19,6 +19,7 @@ export default function Settings() {
     a.href = URL.createObjectURL(blob)
     a.download = `ai비서_백업_${new Date().toISOString().slice(0, 10)}.json`
     a.click()
+    show('백업 파일을 내려받았습니다')
   }
   const restore = (e) => {
     const f = e.target.files?.[0]
@@ -53,7 +54,7 @@ export default function Settings() {
         <Disclosure icon="🔠" title="글자 크기" open>
           <div className="chips">
             {[['normal', '보통'], ['large', '크게'], ['xlarge', '아주 크게']].map(([k, l]) => (
-              <button key={k} type="button" className={'chip' + (p.fontScale === k ? ' on' : '')} onClick={() => dispatch({ type: 'profile', data: { fontScale: k } })}>{l}</button>
+              <button key={k} type="button" className={'chip' + (p.fontScale === k ? ' on' : '')} onClick={() => { dispatch({ type: 'profile', data: { fontScale: k } }); show(`글자 크기: ${l}`) }}>{l}</button>
             ))}
           </div>
           <p className="muted small">언제든 바꿀 수 있습니다. 화면 구성은 그대로 유지됩니다.</p>
@@ -62,7 +63,7 @@ export default function Settings() {
         <Disclosure icon="⭐" title={p.premium ? '프리미엄 이용 중' : '프리미엄 (광고 없음 · AI 무제한)'}>
           <p>무료: 고객 50명 · AI 코칭 하루 5회 · 콘텐츠 화면 광고<br />스탠다드 월 9,900원: 고객 무제한 · AI 하루 30회 · 광고 없음<br />프로 월 19,900원: AI 무제한 · 팀 기능</p>
           <p className="muted small">결제 연동 전 데모: 아래 버튼으로 프리미엄 상태를 켜고 끌 수 있습니다.</p>
-          <button className={'btn ' + (p.premium ? 'btn-outline' : 'btn-green')} onClick={() => dispatch({ type: 'profile', data: { premium: !p.premium } })}>{p.premium ? '프리미엄 해제 (데모)' : '프리미엄 켜기 (데모)'}</button>
+          <button className={'btn ' + (p.premium ? 'btn-outline' : 'btn-green')} onClick={() => { dispatch({ type: 'profile', data: { premium: !p.premium } }); show(p.premium ? '무료 플랜으로 돌아갔습니다' : '프리미엄이 켜졌습니다. 광고가 사라집니다') }}>{p.premium ? '프리미엄 해제 (데모)' : '프리미엄 켜기 (데모)'}</button>
         </Disclosure>
 
         <Disclosure icon="🔌" title="AI 연결 상태">

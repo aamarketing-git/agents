@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { Disclosure, Empty, TopBar } from '../components/ui'
+import { Disclosure, Empty, TopBar, notify } from '../components/ui'
 import VoiceInput from '../components/VoiceInput'
 
 /* =========================================================
@@ -23,19 +23,19 @@ export default function Leader() {
           <div className="card soft">
             <h3>🏆 리더의 길을 시작할까요?</h3>
             <p>팀(그룹)을 이끌거나 준비 중이라면 리더 모드를 켜세요. 그룹 활동 기록, 교육 진행, 리더 후보 관리가 열립니다.</p>
-            <button className="btn btn-primary" onClick={() => dispatch({ type: 'profile', data: { leaderMode: true } })}>리더 모드 켜기</button>
+            <button className="btn btn-primary" onClick={() => { dispatch({ type: 'profile', data: { leaderMode: true } }); notify('리더 모드를 켰습니다') }}>리더 모드 켜기</button>
           </div>
         )}
         {leaderMode && (
           <>
             <div className="tile-grid">
-              <div className="tile purple"><span className="ico">👥</span><span><span className="label" style={{ display: 'block' }}>{partners.length}명</span><span className="sub">우리 팀 (파트너)</span></span></div>
+              <div className="tile navy"><span className="ico">👥</span><span><span className="label" style={{ display: 'block' }}>{partners.length}명</span><span className="sub">우리 팀 (파트너)</span></span></div>
               <div className="tile green"><span className="ico">🌟</span><span><span className="label" style={{ display: 'block' }}>{candidates.length}명</span><span className="sub">리더 후보 (관심도 4+)</span></span></div>
             </div>
 
             <Disclosure icon="📣" title="그룹 활동 기록" open>
               <VoiceInput value={log} onChange={setLog} rows={3} placeholder="예: 화요일 팀 미팅 6명 참석, 신제품 교육 진행" />
-              <button className="btn btn-soft" disabled={!log.trim()} onClick={() => { dispatch({ type: 'note.add', data: { text: log.trim(), kind: 'group' } }); setLog('') }}>기록 저장</button>
+              <button className="btn btn-soft" disabled={!log.trim()} onClick={() => { dispatch({ type: 'note.add', data: { text: log.trim(), kind: 'group' } }); setLog(''); notify('그룹 활동을 기록했습니다') }}>기록 저장</button>
               {activity.slice(0, 5).map((n) => <div key={n.id} className="card ivory" style={{ padding: 12 }}><p className="small muted">{n.date}</p><p>{n.text}</p></div>)}
             </Disclosure>
 
@@ -56,7 +56,7 @@ export default function Leader() {
                 <div key={p.id} className="list-item" style={{ boxShadow: 'none', background: 'var(--ivory)', cursor: 'default' }}>
                   <div className="avatar green">{p.name[0]}</div>
                   <div className="main"><div className="name">{p.name}</div><div className="meta">{'★'.repeat(p.interest)} · {p.memo?.slice(0, 30) || '메모 없음'}</div></div>
-                  <button className="btn btn-green btn-sm" onClick={() => dispatch({ type: 'customer.update', id: p.id, data: { isPartner: true } })}>파트너로</button>
+                  <button className="btn btn-green btn-sm" onClick={() => { dispatch({ type: 'customer.update', id: p.id, data: { isPartner: true } }); notify(`${p.name}님을 파트너로 등록했습니다`) }}>파트너로</button>
                 </div>
               ))}
             </Disclosure>

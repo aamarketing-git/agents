@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { addDays, fmtDate, today, uid, useStore } from '../store'
-import { FOLLOWUP_DAYS, PREP_QUESTIONS, localFeedback, meetingGoal } from '../lib/coaching'
+import { STAGES, addDays, fmtDate, stageIndex, today, uid, useStore } from '../store'
+import { FOLLOWUP_DAYS, PREP_QUESTIONS, STAGE_TIP, localFeedback, meetingGoal, parseFeedbackText, twoTwoTwoEvents } from '../lib/coaching'
 import { askAI } from '../lib/ai'
-import { Stars, TopBar, useToast } from '../components/ui'
+import { Stars, TopBar, notify } from '../components/ui'
 import VoiceInput from '../components/VoiceInput'
 
 /* =========================================================
    7단계 고객관리 흐름 (손글씨 메모의 ①~⑦)
    ① 일정 확인  ② 고객 체크  ③ 몇 번째 만남  ④ 이전 대화 기억하기
    ⑤ 오늘 무엇을 풀어갈까  ⑥ 직접 만나기(기록)  ⑦ AI 피드백 체크
-   - 단계 그림(막대)을 누르면 전 단계로 이동
+   - 단계 막대를 누르면 전 단계로 이동
    ========================================================= */
 const STEP_TITLES = ['일정 확인', '고객 체크', '몇 번째 만남', '이전 대화 기억', '오늘 무엇을 풀어갈까', '직접 만나기 · 기록', 'AI 피드백 체크']
 
@@ -32,10 +32,10 @@ export default function Meeting() {
   const [result, setResult] = useState('')
   const [nextAction, setNextAction] = useState('')
   const [interest, setInterest] = useState(c?.interest || 2)
-  const [feedback, setFeedback] = useState('')
+  const [stage, setStage] = useState(c?.stage || 'new')
+  const [feedback, setFeedback] = useState(null) // { source, score, grade, rows, summary, text }
   const [prepAI, setPrepAI] = useState('')
   const [loading, setLoading] = useState(false)
-  const [toast, show] = useToast()
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [step])
 
@@ -47,7 +47,7 @@ export default function Meeting() {
   const getPrep = async () => {
     setLoading(true)
     const r = await askAI('prep', { customer: c, count, history: historyText }, profile, () =>
-      `${goal.title}\n\n${goal.tip}\n\n첫 질문 제안: "${history[0] ? `지난번에 말씀하신 ${history[0].memo.slice(0, 20)}… 그 뒤로 어떻게 되셨어요?` : '요즘 가장 신경 쓰이는 일이 무엇이세요?'}"`,
+      `${goal.title}\n\n${goal.tip}\n\n단계 조언: ${STAGE_TIP[c.stage || 'new']}\n\n첫 질문 제안: "${history[0] ? `지난번에 말씀하신 ${history[0].memo.slice(0, 20)}… 그 뒤로 어떻게 되셨어요?` : '요즘 가장 신경 쓰이는 일이 무엇이세요?'}"`,
     )
     setPrepAI(r.text)
     setLoading(false)
@@ -55,24 +55,34 @@ export default function Meeting() {
 
   const finish = async () => {
     setLoading(true)
-    const meeting = { id: meetingId, customerId: c.id, date: today(), step: 7, done: true, plan, memo, result, nextAction, interest, eventId: event?.id }
-    const fb = await askAI('feedback', { customer: c, count, history: historyText, meeting }, profile, () => localFeedback({ customer: c, meeting, count }))
-    setFeedback(fb.text)
-    dispatch({ type: 'meeting.add', data: { ...meeting, feedback: fb.text } })
-    dispatch({ type: 'customer.update', id: c.id, data: { interest, lastContact: today(), nextFollowup: addDays(today(), FOLLOWUP_DAYS[interest] || 7) } })
+    const meeting = { id: meetingId, customerId: c.id, date: today(), step: 7, done: true, plan, memo, result, nextAction, interest, stage, eventId: event?.id }
+    const local = localFeedback({ customer: { ...c, stage }, meeting, count, prevMeeting: history[0] })
+    const r = await askAI('feedback', { customer: { ...c, stage }, count, history: historyText, meeting }, profile, () => local.summary)
+    const fb = r.source === 'ai'
+      ? { source: 'ai', score: local.score, grade: local.grade, rows: parseFeedbackText(r.text), summary: local.summary, text: r.text }
+      : { source: 'local', ...local, text: local.rows.map((x) => `[${x.label}] ${x.text}`).join('\n') }
+    setFeedback(fb)
+    dispatch({ type: 'meeting.add', data: { ...meeting, feedback: fb.text, score: fb.score } })
+    const stageChanged = stage !== (c.stage || 'new')
+    dispatch({ type: 'customer.update', id: c.id, data: { interest, stage, lastContact: today(), nextFollowup: addDays(today(), FOLLOWUP_DAYS[interest] || 7), ...(stageChanged ? { stageChangedAt: today() } : {}) } })
+    if (stageChanged && stage === 'closed') {
+      twoTwoTwoEvents(c).forEach((e) => dispatch({ type: 'event.add', data: e }))
+      notify('계약 축하합니다! 2일·2주·2개월 연락 일정을 만들었습니다')
+    } else {
+      notify('기록과 피드백을 저장했습니다')
+    }
     setLoading(false)
     setStep(6)
-    show('기록과 피드백을 저장했습니다')
   }
 
   const StepBar = () => (
     <div>
       <div className="steps" role="tablist" aria-label="단계">
         {STEP_TITLES.map((t, i) => (
-          <span key={i} className={i < step ? 'done' : i === step ? 'now' : ''} role="tab" aria-label={`${i + 1}단계 ${t}`} onClick={() => i < step && setStep(i)} style={{ cursor: i < step ? 'pointer' : 'default' }} />
+          <span key={i} className={i < step ? 'done' : i === step ? 'now' : ''} role="tab" aria-label={`${i + 1}단계 ${t}`} onClick={() => i < step && step < 6 && setStep(i)} style={{ cursor: i < step && step < 6 ? 'pointer' : 'default' }} />
         ))}
       </div>
-      <p className="muted mt">{step + 1} / 7 · {STEP_TITLES[step]} {step > 0 && <span className="small">(막대를 누르면 전 단계로)</span>}</p>
+      <p className="muted mt">{step + 1} / 7 · {STEP_TITLES[step]} {step > 0 && step < 6 && <span className="small">(막대를 누르면 전 단계로)</span>}</p>
     </div>
   )
 
@@ -108,8 +118,9 @@ export default function Meeting() {
                 <div className="meta">{c.phone || '연락처 없음'}{c.source ? ` · ${c.source}` : ''}</div>
               </div>
             </div>
-            <p><b>관심도</b> {'★'.repeat(c.interest || 0)}{'☆'.repeat(5 - (c.interest || 0))}</p>
+            <p><b>단계</b> {STAGES[stageIndex(c.stage)].label} · <b>관심도</b> {'★'.repeat(c.interest || 0)}{'☆'.repeat(5 - (c.interest || 0))}</p>
             {c.family && <p><b>가족·개인</b> {c.family}</p>}
+            {c.birthday && <p><b>기념일</b> {c.birthday}</p>}
             {c.memo && <p><b>메모</b> {c.memo}</p>}
             <button className="btn btn-outline" onClick={() => nav(`/customers/${c.id}/edit`)}>정보 수정</button>
             <Nav next={() => setStep(2)} />
@@ -119,9 +130,10 @@ export default function Meeting() {
         {step === 2 && (
           <div className="card">
             <div className="row"><span className="step-num">3</span><h3>몇 번째 만남</h3></div>
-            <h1 style={{ color: 'var(--purple)' }}>{count}번째</h1>
+            <h1 style={{ color: 'var(--navy)' }}>{count}번째</h1>
             <p><b>{goal.title}</b></p>
             <p>{goal.tip}</p>
+            <p className="muted small">단계 조언 · {STAGE_TIP[c.stage || 'new']}</p>
             <Nav next={() => setStep(3)} />
           </div>
         )}
@@ -130,11 +142,11 @@ export default function Meeting() {
           <div className="card">
             <div className="row"><span className="step-num">4</span><h3>이전 대화 기억하기</h3></div>
             {history.length === 0 && <p className="muted">첫 만남입니다. 오늘 들은 이야기가 다음 만남의 첫 인사가 됩니다.</p>}
+            {history[0]?.nextAction && <div className="card soft-green" style={{ padding: 12 }}><b>지난 약속 확인</b><p>{history[0].nextAction}</p><p className="small muted">이 약속을 지켰는지 먼저 말하세요. 신뢰의 기본입니다.</p></div>}
             {history.map((m) => (
               <div key={m.id} className="card ivory" style={{ padding: 14 }}>
                 <p className="muted small">{fmtDate(m.date)} · {m.result === 'positive' ? '반응 좋음' : m.result === 'negative' ? '미지근' : '보통'}</p>
                 <p>{m.memo}</p>
-                {m.nextAction && <p className="small"><b>약속:</b> {m.nextAction}</p>}
               </div>
             ))}
             <Nav next={() => setStep(4)} />
@@ -172,6 +184,15 @@ export default function Meeting() {
               <Stars value={interest} onChange={setInterest} />
             </div>
             <div className="field">
+              <label>고객 단계 (바뀌었다면 눌러서 바꾸기)</label>
+              <div className="stage-row">
+                {STAGES.map((s, i) => (
+                  <button key={s.id} type="button" className={i < stageIndex(stage) ? 'done' : s.id === stage ? 'now' : ''} onClick={() => setStage(s.id)}>{s.short}</button>
+                ))}
+              </div>
+              {stage === 'closed' && (c.stage || 'new') !== 'closed' && <p className="small" style={{ color: 'var(--green-dark)' }}>계약으로 바꾸면 2일·2주·2개월 연락 일정이 자동으로 만들어집니다.</p>}
+            </div>
+            <div className="field">
               <label>다음 행동 (언제 · 무엇을)</label>
               <input className="input" value={nextAction} onChange={(e) => setNextAction(e.target.value)} placeholder="예: 목요일에 자료 카톡으로 보내기" />
             </div>
@@ -179,17 +200,27 @@ export default function Meeting() {
           </div>
         )}
 
-        {step === 6 && (
+        {step === 6 && feedback && (
           <div className="card">
             <div className="row"><span className="step-num done">7</span><h3>AI 피드백 체크</h3></div>
-            <div className="ai-bubble">{feedback}</div>
+            <div className="row" style={{ alignItems: 'center' }}>
+              <div className="score"><b>{feedback.score}</b><span className="muted">/ 100 · {feedback.grade}</span></div>
+              {feedback.source === 'local' && <span className="badge">기본 코칭</span>}
+            </div>
+            <div className="progress"><div style={{ width: `${feedback.score}%` }} /></div>
+            <div className="fb">
+              {feedback.rows.map((r, i) => (
+                <div key={i} className={'fb-row ' + r.kind}><b>{r.label}</b><span>{r.text}</span></div>
+              ))}
+            </div>
+            <p className="muted small">{feedback.summary}</p>
+            <div className="divider" />
             <p className="muted">다음 연락 권장일: <b>{fmtDate(addDays(today(), FOLLOWUP_DAYS[interest] || 7))}</b> (관심도 {interest}점 기준)</p>
             <button className="btn btn-green" onClick={() => nav('/content?kind=감사 카톡&to=' + encodeURIComponent(c.name))}>💬 감사 카톡 만들기</button>
             <button className="btn btn-outline" onClick={() => nav(`/customers/${c.id}`)}>고객 기록 보기</button>
             <button className="btn btn-ghost" onClick={() => nav('/today')}>오늘 할 일로</button>
           </div>
         )}
-        {toast}
       </div>
     </>
   )
