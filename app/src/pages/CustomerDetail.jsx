@@ -117,8 +117,9 @@ export default function CustomerDetail() {
 
         <Section eyebrow="Ask" title={`${state.profile.aiName}에게 이 분에 대해 묻기`}>
           <div className="row" style={{ flexWrap: 'wrap' }}>
-            <button className="btn btn-soft-green btn-sm" onClick={() => nav('/coach?q=' + encodeURIComponent(`${c.name}님 어떻게 관리할까?`))}>어떻게 관리할까?</button>
-            <button className="btn btn-soft-green btn-sm" onClick={() => nav('/coach?q=' + encodeURIComponent(`${c.name}님 다음 만남에서 무엇을 이야기할까?`))}>다음 만남 준비</button>
+            <button className="btn btn-soft-green btn-sm" onClick={() => nav('/assistant?q=' + encodeURIComponent(`${c.name}님 어떻게 관리할까?`))}>어떻게 관리할까?</button>
+            <button className="btn btn-soft-green btn-sm" onClick={() => nav('/assistant?q=' + encodeURIComponent(`${c.name}님 다음 만남에서 무엇을 이야기할까?`))}>다음 만남 준비</button>
+            <button className="btn btn-soft btn-sm" onClick={() => nav('/assistant?q=' + encodeURIComponent(`${c.name}님한테 전화했어, `))}>전화했어 (말로 기록)</button>
           </div>
         </Section>
 

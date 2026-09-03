@@ -16,7 +16,7 @@ export default function Home() {
   const rm = roadmap(state)
   const wk = weeklyReport(state)
   const [ask, setAsk] = useState('')
-  const goAsk = (t) => nav('/coach?q=' + encodeURIComponent(t))
+  const goAsk = (t) => nav('/assistant?q=' + encodeURIComponent(t))
   const hour = new Date().getHours()
   const greet = hour < 11 ? '좋은 아침입니다' : hour < 17 ? '활기찬 오후입니다' : '수고 많으셨습니다'
 
@@ -24,7 +24,7 @@ export default function Home() {
     { to: '/today', ico: '📅', label: '오늘 할 일', sub: `${todays.length}개 일정 · ${due.length}명 연락`, cls: 'navy' },
     { to: '/customers', ico: '👥', label: '고객 관리', sub: `${state.customers.length}명 · 연락시점 · 관심도`, cls: 'green' },
     { to: '/content', ico: '✍️', label: '콘텐츠 만들기', sub: 'SNS · 카톡 · 교육자료', cls: 'soft' },
-    { to: '/coach', ico: '🌱', label: 'AI 코치', sub: '제품 · 사업 · SNS 질문', cls: 'soft-green' },
+    { to: '/coach', ico: '🌱', label: '성장 코치', sub: '로드맵 · 주간 리포트 · 노트', cls: 'soft-green' },
     { to: '/education', ico: '🎓', label: '교육센터', sub: '건강·제품·AI·사업·리더', cls: '' },
     { to: '/leader', ico: '🏆', label: '리더 대시보드', sub: '그룹 활동 · 리더 후보', cls: '' },
   ]
@@ -50,11 +50,11 @@ export default function Home() {
 
         <Section eyebrow="Ask" title={`${profile.aiName}에게 물어보기`}>
           <form className="row" onSubmit={(e) => { e.preventDefault(); if (ask.trim()) goAsk(ask.trim()) }}>
-            <input className="input" value={ask} onChange={(e) => setAsk(e.target.value)} placeholder="예: 오늘 연락할 고객 누구야?" />
+            <input className="input" value={ask} onChange={(e) => setAsk(e.target.value)} placeholder="예: 오늘 연락할 고객 누구야? / 김철수 등록해 줘" />
             <button className="btn btn-primary" style={{ flex: 'none', width: 'auto', padding: '0 18px' }} type="submit">질문</button>
           </form>
           <div className="chips">
-            {['오늘 관리 대상', '내일 챙길 사람', '연락 오래 안 한 고객', '이번 주 정리'].map((t) => <button key={t} type="button" className="chip" onClick={() => goAsk(t)}>{t}</button>)}
+            {['오늘 관리 대상', '내일 챙길 사람', '연락 오래 안 한 고객', '새 고객 등록해 줘'].map((t) => <button key={t} type="button" className="chip" onClick={() => goAsk(t)}>{t}</button>)}
           </div>
         </Section>
 

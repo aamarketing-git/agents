@@ -69,37 +69,7 @@ export default function Coach() {
           <p>{state.profile.userName}님은 지금 <b>{rm.stages[rm.current].title}</b>에 있습니다.</p>
         </div>
 
-        <Section eyebrow="Ask" title={`${state.profile.aiName}에게 물어보기`} aside={`${state.progress.coachAsked || 0}회 질문`}>
-        <div className="card">
-          <p className="muted">제품 · 사업 · SNS · 마음관리, 무엇이든.</p>
-          <div className="chips">
-            {QUICK.slice(0, 5).map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
-          </div>
-          <details><summary className="small" style={{ cursor: 'pointer', color: 'var(--navy)' }}>코칭 질문 예시 더 보기</summary><div className="chips mt">
-            {QUICK.slice(5).map((x) => <button key={x} type="button" className="chip" onClick={() => ask(x)}>{x}</button>)}
-          </div></details>
-          <div className="chips" hidden>
-          </div>
-          <VoiceInput value={q} onChange={setQ} rows={3} placeholder="말로 물어보셔도 됩니다" />
-          <button className="btn btn-green" onClick={() => ask()} disabled={loading || !q.trim()}>{loading ? '생각 중…' : '질문하기'}</button>
-          {a && (
-            <div className="fb" id="answer" style={{ scrollMarginTop: 80 }}>
-              <div className="ai-bubble green">{a.text}</div>
-              {a.customers?.length > 0 && (
-                <div className="chips">
-                  {a.customers.map((c) => <button key={c.id} type="button" className="chip on-green" onClick={() => nav(`/customers/${c.id}`)}>👤 {c.name}</button>)}
-                </div>
-              )}
-              {a.actions?.length > 0 && (
-                <div className="row" style={{ flexWrap: 'wrap' }}>
-                  {a.actions.map((x) => <button key={x.to} className="btn btn-soft btn-sm" onClick={() => nav(x.to)}>{x.label} →</button>)}
-                </div>
-              )}
-              {a.source === 'local' && a.intent && <p className="small muted">내 고객·일정 데이터에서 찾은 답입니다.</p>}
-            </div>
-          )}
-        </div>
-        </Section>
+        <button className="btn btn-primary" onClick={() => nav('/assistant')}>💬 {state.profile.aiName}에게 물어보기 · 시키기</button>
 
         <Section eyebrow="Weekly" title="이번 주 리포트" aside="최근 7일">
           <div className="row" style={{ flexWrap: 'wrap' }}>

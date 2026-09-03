@@ -28,6 +28,10 @@ jobs:
         working-directory: app
       - run: npm run build:pages
         working-directory: app
+        env:
+          VITE_ADSENSE_CLIENT: ${{ secrets.ADSENSE_CLIENT }}
+          VITE_ADSENSE_SLOT_LIST: ${{ secrets.ADSENSE_SLOT_LIST }}
+          VITE_KAKAO_JS_KEY: ${{ secrets.KAKAO_JS_KEY }}
       - uses: actions/configure-pages@v5
         with:
           enablement: true

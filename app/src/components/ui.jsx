@@ -21,7 +21,7 @@ const TABS = [
   { to: '/today', ico: '📅', label: '오늘' },
   { to: '/customers', ico: '👥', label: '고객' },
   { to: '/content', ico: '✍️', label: '콘텐츠' },
-  { to: '/coach', ico: '🌱', label: '코치' },
+  { to: '/assistant', ico: '💬', label: '비서' },
 ]
 export function BottomNav() {
   const { pathname } = useLocation()

@@ -62,6 +62,7 @@ export default function Education() {
             {!done[l.id] && <button className="btn btn-green" onClick={() => { dispatch({ type: 'education.done', id: l.id }); notify(`완료! ${doneN + 1} / ${total} 강의`) }}>읽었어요 · 완료</button>}
           </Disclosure>
         ))}
+        <a className="btn btn-outline" href={import.meta.env.BASE_URL + 'tips/'} target="_blank" rel="noreferrer">📰 영업 노하우 읽기 (공개 페이지)</a>
         <AdSlot slot={import.meta.env.VITE_ADSENSE_SLOT_LIST} />
       </div>
     </>

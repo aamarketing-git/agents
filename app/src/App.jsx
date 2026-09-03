@@ -14,6 +14,7 @@ import Education from './pages/Education'
 import Leader from './pages/Leader'
 import Settings from './pages/Settings'
 import Schedule from './pages/Schedule'
+import Assistant from './pages/Assistant'
 
 export default function App() {
   const { state } = useStore()
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/customers/:id/edit" element={<CustomerEdit />} />
         <Route path="/content" element={<Content />} />
         <Route path="/coach" element={<Coach />} />
+        <Route path="/assistant" element={<Assistant />} />
         <Route path="/education" element={<Education />} />
         <Route path="/leader" element={<Leader />} />
         <Route path="/settings" element={<Settings />} />

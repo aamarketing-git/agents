@@ -5,6 +5,15 @@
 - 광고 자리는 **교육센터**, **콘텐츠 만들기** 하단 두 곳(`<AdSlot />`). 프리미엄 사용자는 렌더링하지 않음.
 - 앱(네이티브)에서는 상시 배너 대신 **사용자가 직접 누르는 리워드 광고**("광고 보고 AI 5회 충전")만 권장.
 
+## 0. 지금 연결된 상태 (2026-09-03)
+- 앱 내 광고 자리: 교육센터·콘텐츠 만들기 하단 `<AdSlot />` (프리미엄 이상 플랜은 미표시).
+- 승인용 공개 콘텐츠 페이지: `app/public/tips/index.html` → 배포 주소 `https://aamarketing-git.github.io/agents/tips/`. 빌드 시 `scripts/inject-adsense.mjs` 가 AdSense 스크립트와 광고 단위를 주입합니다.
+- GitHub Pages 배포 시 저장소 **Settings → Secrets and variables → Actions** 에 아래 시크릿을 넣으면 자동 반영됩니다.
+  - `ADSENSE_CLIENT` = `ca-pub-XXXXXXXXXXXXXXXX`
+  - `ADSENSE_SLOT_LIST` = 광고 단위 ID(숫자)
+  - `KAKAO_JS_KEY` = 카카오 개발자 앱 JavaScript 키 (카카오톡 보내기용, 선택)
+- `app/public/ads.txt` 에 발급 줄을 추가하고 푸시하세요.
+
 ## 1. 웹 · Google AdSense
 1. AdSense 승인용으로 정적 콘텐츠(랜딩, 영업 노하우 글)가 있는 도메인을 먼저 준비. SPA만으로는 "가치 낮은 콘텐츠"로 거절되기 쉬움.
 2. 승인 후 `app/.env`:

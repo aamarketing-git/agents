@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '../store'
 import { askAI } from '../lib/ai'
-import { Disclosure, TopBar, useToast } from '../components/ui'
+import { Disclosure, Section, TopBar, useToast } from '../components/ui'
+import { makeCardImage } from '../lib/imageCard'
+import { kakaoReady, kakaoSendText, shareImage, shareText, downloadBlob, canShareFiles } from '../lib/share'
 import VoiceInput from '../components/VoiceInput'
 import AdSlot from '../components/AdSlot'
 
@@ -54,6 +56,34 @@ export default function Content() {
   const [source, setSource] = useState('')
   const [loading, setLoading] = useState(false)
   const [toast, show] = useToast()
+  const [img, setImg] = useState(null) // { blob, dataUrl, format }
+  const [fmt, setFmt] = useState('instagram')
+  const [theme, setTheme] = useState('navy')
+  const [making, setMaking] = useState(false)
+
+  const splitForCard = () => {
+    const lines = out.split('\n').map((l) => l.trim())
+    const tags = lines.filter((l) => l.startsWith('#')).join(' ')
+    const bodyLines = lines.filter((l) => !l.startsWith('#'))
+    const title = topic || (bodyLines[0] || '').slice(0, 30)
+    const body = (topic ? bodyLines : bodyLines.slice(1)).join('\n').trim()
+    return { title, body: body || out, hashtags: tags }
+  }
+  const makeImage = async (f = fmt, t = theme) => {
+    setMaking(true)
+    const { title, body, hashtags } = splitForCard()
+    const r = await makeCardImage({ format: f, theme: t, title, body, hashtags: f === 'kakao' ? '' : hashtags, footer: `${state.profile.userName} · ${state.profile.aiName}` })
+    setImg({ ...r, format: f })
+    setMaking(false)
+  }
+  const shareImg = async () => {
+    const r = await shareImage(img.blob, `${kind}_${fmt}.png`, out)
+    show(r === 'shared' ? '공유했습니다' : r === 'downloaded' ? '이미지를 저장했습니다. 인스타·카톡에서 올려 주세요' : '취소했습니다')
+  }
+  const sendKakao = async () => {
+    const r = await kakaoSendText(out)
+    show(r === 'kakao' ? '카카오톡으로 보냈습니다' : r === 'shared' ? '공유 창에서 카카오톡을 선택하세요' : r === 'copied' ? '복사했습니다. 카톡에 붙여 넣으세요' : '취소했습니다')
+  }
 
   const generate = async () => {
     setLoading(true)
@@ -61,6 +91,7 @@ export default function Content() {
     const r = await askAI('content', payload, state.profile, () => localContent({ ...payload, profile: state.profile }))
     setOut(r.text)
     setSource(r.source)
+    setImg(null)
     dispatch({ type: 'content.add', data: { kind, topic, text: r.text } })
     setLoading(false)
   }
@@ -114,6 +145,36 @@ export default function Content() {
             </div>
             <button className="btn btn-ghost" onClick={generate}>다시 쓰기</button>
           </div>
+        )}
+
+        {out && (
+          <Section eyebrow="Send" title="카톡으로 보내기 · 이미지로 만들기">
+            <div className="row">
+              <button className="btn btn-green" onClick={sendKakao}>💛 카카오톡으로 보내기</button>
+              <button className="btn btn-outline" onClick={async () => { const r = await shareText(out); show(r === 'shared' ? '공유했습니다' : r === 'copied' ? '복사했습니다' : '취소') }}>📤 다른 앱</button>
+            </div>
+            <p className="small muted">{kakaoReady() ? '카카오 공유가 연결되어 있습니다.' : '휴대폰에서는 공유 창이 열리고 카카오톡·인스타그램을 고를 수 있습니다. PC에서는 복사됩니다.'}</p>
+            <div className="field">
+              <label>이미지 형식</label>
+              <div className="chips">
+                {[['instagram', '📷 인스타 정사각'], ['story', '📱 스토리 세로'], ['kakao', '💬 카톡 가로']].map(([k, l]) => <button key={k} type="button" className={'chip' + (fmt === k ? ' on' : '')} onClick={() => { setFmt(k); if (img) makeImage(k, theme) }}>{l}</button>)}
+              </div>
+              <div className="chips">
+                {[['navy', '남색'], ['ivory', '아이보리'], ['green', '초록']].map(([k, l]) => <button key={k} type="button" className={'chip' + (theme === k ? ' on-green' : '')} onClick={() => { setTheme(k); if (img) makeImage(fmt, k) }}>{l}</button>)}
+              </div>
+            </div>
+            <button className="btn btn-primary" onClick={() => makeImage()} disabled={making}>{making ? '만드는 중…' : '🖼️ 이미지 카드 만들기'}</button>
+            {img && (
+              <div className="card ivory" style={{ padding: 10 }}>
+                <img src={img.dataUrl} alt="생성된 이미지 카드" style={{ width: '100%', borderRadius: 6, display: 'block' }} />
+                <div className="row mt">
+                  <button className="btn btn-green" onClick={shareImg}>{canShareFiles([new File([img.blob], 'a.png', { type: 'image/png' })]) ? '📤 인스타·카톡으로 공유' : '⬇️ 이미지 저장'}</button>
+                  <button className="btn btn-outline" onClick={() => { downloadBlob(img.blob, `${kind}_${fmt}.png`); show('이미지를 저장했습니다') }}>저장</button>
+                </div>
+                <p className="small muted mt">인스타그램은 앱에서 직접 올려야 합니다. 공유 창에서 Instagram을 고르거나, 저장한 이미지를 인스타 앱에서 선택하세요. 글은 위의 "복사"로 붙여 넣으면 됩니다.</p>
+              </div>
+            )}
+          </Section>
         )}
 
         {state.contents.length > 0 && (

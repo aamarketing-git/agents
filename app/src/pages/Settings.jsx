@@ -4,7 +4,13 @@ import { PROFESSIONS, useStore } from '../store'
 import { aiStatus } from '../lib/ai'
 import { Disclosure, TopBar, useToast } from '../components/ui'
 
-/* 설정 : 비서 이름 · 내 이름 · 직종 · 글자 크기 · 프리미엄 · 데이터 */
+/* 설정 : 비서 이름 · 내 이름 · 직종 · 글자 크기 · 요금제 · 데이터 */
+const PLANS = [
+  { id: 'free', name: '무료', price: '0원', desc: '고객 50명 · 일정·기록 · 규칙 기반 비서 · AI 코칭 하루 5회 · 콘텐츠 화면 광고' },
+  { id: 'standard', name: '스탠다드', price: '월 9,900원', desc: '고객 무제한 · AI 코칭 하루 30회 · 광고 없음 · 7일 체험' },
+  { id: 'pro', name: '프로', price: '월 19,900원', desc: 'AI 에이전트 무제한(말로 시키기·도구 실행) · 카톡/SNS 대량 생성 · 팀 기능' },
+  { id: 'premier', name: '프리미어 · 먼저 움직이는 비서', price: '월 39,000원', desc: '아침 브리핑 푸시 · 연락 시점 자동 알림 · 만남 후 자동 정리 · 주간 리포트 발송 · 클라우드 백업·동기화 · 리더 파트너 리포트' },
+]
 export default function Settings() {
   const { state, dispatch } = useStore()
   const nav = useNavigate()
@@ -60,10 +66,19 @@ export default function Settings() {
           <p className="muted small">언제든 바꿀 수 있습니다. 화면 구성은 그대로 유지됩니다.</p>
         </Disclosure>
 
-        <Disclosure icon="⭐" title={p.premium ? '프리미엄 이용 중' : '프리미엄 (광고 없음 · AI 무제한)'}>
-          <p>무료: 고객 50명 · AI 코칭 하루 5회 · 콘텐츠 화면 광고<br />스탠다드 월 9,900원: 고객 무제한 · AI 하루 30회 · 광고 없음<br />프로 월 19,900원: AI 무제한 · 팀 기능</p>
-          <p className="muted small">결제 연동 전 데모: 아래 버튼으로 프리미엄 상태를 켜고 끌 수 있습니다.</p>
-          <button className={'btn ' + (p.premium ? 'btn-outline' : 'btn-green')} onClick={() => { dispatch({ type: 'profile', data: { premium: !p.premium } }); show(p.premium ? '무료 플랜으로 돌아갔습니다' : '프리미엄이 켜졌습니다. 광고가 사라집니다') }}>{p.premium ? '프리미엄 해제 (데모)' : '프리미엄 켜기 (데모)'}</button>
+        <Disclosure icon="⭐" title={p.plan && p.plan !== 'free' ? `요금제: ${PLANS.find((x) => x.id === p.plan)?.name}` : '요금제 · 무료 이용 중'}>
+          <div className="list">
+            {PLANS.map((pl) => (
+              <div key={pl.id} className={'card ' + (p.plan === pl.id ? 'soft-green' : 'ivory')} style={{ padding: 14 }}>
+                <div className="row" style={{ justifyContent: 'space-between' }}>
+                  <b>{pl.name}</b><span className="badge navy">{pl.price}</span>
+                </div>
+                <p className="small">{pl.desc}</p>
+                {p.plan !== pl.id && <button className="btn btn-outline btn-sm" onClick={() => { dispatch({ type: 'profile', data: { plan: pl.id, premium: pl.id !== 'free' } }); show(`${pl.name} 플랜으로 바꿨습니다 (데모)`) }}>이 플랜으로 (데모)</button>}
+              </div>
+            ))}
+          </div>
+          <p className="muted small">결제 연동 전 데모입니다. 실제 서비스에서는 웹 결제(PG) 우선, 앱 스토어 결제 병행을 권장합니다. 프리미어 플랜의 "먼저 움직이는 비서" 기능은 서버·알림 인프라가 준비되면 열립니다.</p>
         </Disclosure>
 
         <Disclosure icon="🔌" title="AI 연결 상태">

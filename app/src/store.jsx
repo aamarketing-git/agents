@@ -31,6 +31,7 @@ const initial = {
     fontScale: 'normal',
     voiceOn: true,
     premium: false,
+    plan: 'free',
     createdAt: null,
   },
   customers: [],
@@ -38,6 +39,7 @@ const initial = {
   events: [],
   notes: [],
   contents: [],
+  chat: [],
   progress: { education: {}, coachAsked: 0 },
 }
 
@@ -96,6 +98,12 @@ function reducer(state, action) {
       return { ...state, notes: [{ ...action.data, id: uid(), date: today() }, ...state.notes] }
     case 'content.add':
       return { ...state, contents: [{ ...action.data, id: uid(), date: today() }, ...state.contents].slice(0, 50) }
+    case 'chat.add':
+      return { ...state, chat: [...state.chat, { ...action.data, id: action.data.id || uid(), ts: Date.now() }].slice(-80) }
+    case 'chat.update':
+      return { ...state, chat: state.chat.map((m) => (m.id === action.id ? { ...m, ...action.data } : m)) }
+    case 'chat.clear':
+      return { ...state, chat: [] }
     case 'education.done':
       return { ...state, progress: { ...state.progress, education: { ...state.progress.education, [action.id]: true } } }
     case 'coach.asked':
