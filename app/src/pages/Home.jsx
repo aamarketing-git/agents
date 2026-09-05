@@ -25,6 +25,7 @@ export default function Home() {
     { to: '/customers', ico: '👥', label: '고객 관리', sub: `${state.customers.length}명 · 연락시점 · 관심도`, cls: 'green' },
     { to: '/content', ico: '✍️', label: '콘텐츠 만들기', sub: 'SNS · 카톡 · 교육자료', cls: 'soft' },
     { to: '/coach', ico: '🌱', label: '성장 코치', sub: '로드맵 · 주간 리포트 · 노트', cls: 'soft-green' },
+    { to: '/library', ico: '📚', label: '자료실', sub: `${(state.library || []).length}개 · 검색 · 고객 전달`, cls: '' },
     { to: '/education', ico: '🎓', label: '교육센터', sub: '건강·제품·AI·사업·리더', cls: '' },
     { to: '/leader', ico: '🏆', label: '리더 대시보드', sub: '그룹 활동 · 리더 후보', cls: '' },
   ]

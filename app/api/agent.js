@@ -26,6 +26,12 @@ const TOOLS = [
     },
   },
   {
+    name: 'search_library',
+    description: '주인이 저장한 업종 자료실(메모·링크·파일 요약)을 검색한다. 제품·건강·사업 질문이나 "자료 찾아줘", "고객에게 보낼 자료"에 사용. 결과에는 제목·요약·핵심 포인트·태그·고객 전달 문장·링크가 포함된다.',
+    strict: true,
+    input_schema: { type: 'object', properties: { query: { type: 'string', description: '검색어 (여러 단어 가능)' }, category: { type: 'string', enum: ['', 'product', 'health', 'business', 'customer', 'education', 'other'] } }, required: ['query', 'category'], additionalProperties: false },
+  },
+  {
     name: 'get_schedule',
     description: '기간 내 일정을 조회한다 (날짜 YYYY-MM-DD).',
     strict: true,
@@ -96,6 +102,7 @@ const SYSTEM = (profile, context) => `당신은 "${profile?.aiName || '비서'}"
 - 고객·일정·관리 대상 질문은 반드시 도구로 조회해 실제 이름·날짜로 답합니다. 없는 사실은 만들지 않습니다.
 - 등록·일정·기록·변경 같은 쓰기 도구는 사용자가 확인 카드로 승인한 뒤 실행됩니다. 호출 전에 무엇을 할지 한 줄로 말하세요. 사용자가 취소하면 존중하고 대안을 묻습니다.
 - 날짜는 오늘(${context?.today})을 기준으로 계산합니다. "다음 주 화요일"처럼 상대 표현은 정확한 날짜로 바꿔서 도구에 넘깁니다.
+- 제품·건강·사업 지식 질문이나 고객에게 줄 자료 요청은 먼저 search_library 로 주인의 자료를 찾아 근거로 답하고, 없으면 일반 지식으로 답하되 그 사실을 밝힙니다.
 - 메시지·글을 써 달라고 하면 도구 없이 바로 본문을 써 줍니다. 상품 효능 단정·과장·허위 소득 약속은 하지 않습니다.
 - 답 끝에는 가능하면 "오늘 바로 할 행동 1가지"를 붙입니다.
 

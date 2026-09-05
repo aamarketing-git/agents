@@ -41,6 +41,7 @@ const initial = {
   notes: [],
   contents: [],
   chat: [],
+  library: [],
   progress: { education: {}, coachAsked: 0 },
 }
 
@@ -99,6 +100,12 @@ function reducer(state, action) {
       return { ...state, notes: [{ ...action.data, id: uid(), date: today() }, ...state.notes] }
     case 'content.add':
       return { ...state, contents: [{ ...action.data, id: uid(), date: today() }, ...state.contents].slice(0, 50) }
+    case 'library.add':
+      return { ...state, library: [{ ...action.data, id: action.data.id || uid(), createdAt: today(), updatedAt: new Date().toISOString(), useCount: 0 }, ...state.library] }
+    case 'library.update':
+      return { ...state, library: state.library.map((i) => (i.id === action.id ? { ...i, ...action.data, updatedAt: new Date().toISOString() } : i)) }
+    case 'library.remove':
+      return { ...state, library: state.library.filter((i) => i.id !== action.id) }
     case 'chat.add':
       return { ...state, chat: [...state.chat, { ...action.data, id: action.data.id || uid(), ts: Date.now() }].slice(-80) }
     case 'chat.update':

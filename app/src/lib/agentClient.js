@@ -6,6 +6,7 @@
    ========================================================= */
 import { STAGES, addDays, fmtDate, stageIndex, today } from '../store'
 import { buildContext, targetsFor } from './assistant'
+import { catLabel, searchLibrary } from './library'
 import { FOLLOWUP_DAYS, followupStatus, nextFollowup, twoTwoTwoEvents } from './coaching'
 
 let available = null
@@ -30,6 +31,10 @@ function runReadTool(name, input, state) {
     if (f === 'closed') list = list.filter((c) => ['closed', 'referral'].includes(c.stage))
     if (f === 'anniversary') list = targetsFor(state, { range: 30 }).anniv
     return { count: list.length, customers: list.slice(0, 30).map((c) => customerRow(c, state)) }
+  }
+  if (name === 'search_library') {
+    const list = searchLibrary(state.library || [], input.query, { category: input.category || '', limit: 6 })
+    return { count: list.length, items: list.map((i) => ({ title: i.title, category: catLabel(i.category), summary: i.summary || (i.content || '').slice(0, 300), keyPoints: i.keyPoints || [], tags: i.tags || [], customerMessage: i.customerMessage || '', url: i.url || '', type: i.type })) }
   }
   if (name === 'get_schedule') {
     const ev = state.events.filter((e) => e.date >= input.from && e.date <= input.to).sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')))
@@ -79,7 +84,7 @@ function planForTool(name, input, state) {
 async function callServer(messages, state) {
   const res = await fetch('/api/agent', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, profile: { ...state.profile, professionLabel: state.profile.profession }, context: { today: today(), summary: buildContext(state) } }),
+    body: JSON.stringify({ messages, profile: { ...state.profile, professionLabel: state.profile.profession }, context: { today: today(), summary: buildContext(state) + `\n[자료실 ${(state.library || []).length}개: ${(state.library || []).slice(0, 20).map((i) => i.title).join(', ')}]` } }),
   })
   if (!res.ok) { const e = new Error('server ' + res.status); e.status = res.status; throw e }
   return res.json()

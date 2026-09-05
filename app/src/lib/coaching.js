@@ -179,7 +179,7 @@ export function roadmap(state) {
   const m = state.meetings.filter((x) => x.done).length
   const e = state.events.length
   const edu = Object.keys(state.progress.education || {}).length
-  const notes = state.notes.length
+  const notes = state.notes.length + (state.library || []).reduce((n, i) => n + (i.studyCount || 0), 0)
   const stages = [
     { key: 'schedule', title: '1단계 · 일정관리', desc: '매일 아침 앱을 열고 오늘 일정을 확인', goal: 3, value: e, unit: '개 일정' },
     { key: 'customer', title: '2단계 · 고객관리', desc: '고객 10명 등록, 만남마다 기록', goal: 10, value: c, unit: '명 등록' },

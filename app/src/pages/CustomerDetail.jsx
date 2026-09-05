@@ -123,6 +123,16 @@ export default function CustomerDetail() {
           </div>
         </Section>
 
+        <Section eyebrow="Material" title="자료 보내기" aside={`${(state.library || []).length}개 보유`}>
+          {(state.library || []).length === 0 ? <p className="small muted">자료실에 제품·건강·고객용 자료를 넣어 두면 여기서 바로 보낼 수 있습니다.</p> : (
+            <select className="select" defaultValue="" onChange={(e) => { if (e.target.value) nav(`/library?id=${e.target.value}`) }}>
+              <option value="">보낼 자료 선택 → 자료실에서 전달</option>
+              {(state.library || []).filter((i) => i.category === 'customer').concat((state.library || []).filter((i) => i.category !== 'customer')).map((i) => <option key={i.id} value={i.id}>{i.title}</option>)}
+            </select>
+          )}
+          <button className="btn btn-ghost btn-sm" onClick={() => nav('/library')}>자료실 열기</button>
+        </Section>
+
         <Section eyebrow="Message" title="이 분께 보낼 메시지">
           <div className="row">
             <button className="btn btn-soft" onClick={() => nav(`/content?kind=안부 카톡&to=${encodeURIComponent(c.name)}`)}>안부</button>

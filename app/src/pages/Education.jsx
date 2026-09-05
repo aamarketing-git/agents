@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { Disclosure, TopBar, notify } from '../components/ui'
 import AdSlot from '../components/AdSlot'
@@ -38,6 +39,7 @@ const CATS = [
 
 export default function Education() {
   const { state, dispatch } = useStore()
+  const nav = useNavigate()
   const done = state.progress.education || {}
   const [cat, setCat] = useState(CATS[0].id)
   const cur = CATS.find((c) => c.id === cat)
@@ -62,6 +64,7 @@ export default function Education() {
             {!done[l.id] && <button className="btn btn-green" onClick={() => { dispatch({ type: 'education.done', id: l.id }); notify(`완료! ${doneN + 1} / ${total} 강의`) }}>읽었어요 · 완료</button>}
           </Disclosure>
         ))}
+        <button className="btn btn-soft" onClick={() => nav('/library')}>📚 내 자료실 (업종 자료 저장·검색·학습)</button>
         <a className="btn btn-outline" href={import.meta.env.BASE_URL + 'tips/'} target="_blank" rel="noreferrer">📰 영업 노하우 읽기 (공개 페이지)</a>
         <AdSlot slot={import.meta.env.VITE_ADSENSE_SLOT_LIST} />
       </div>

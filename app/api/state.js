@@ -2,7 +2,7 @@
 import { json, body, methodGuard } from './_lib/http.js'
 import { getUser } from './_lib/auth.js'
 import { K, getJSON, setJSON } from './_lib/db.js'
-const MAX = 2 * 1024 * 1024
+const MAX = 5 * 1024 * 1024
 export default async function handler(req, res) {
   if (!methodGuard(req, res, ['GET', 'PUT'])) return
   const user = await getUser(req)

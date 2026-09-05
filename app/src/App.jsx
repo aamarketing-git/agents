@@ -16,6 +16,7 @@ import Settings from './pages/Settings'
 import Schedule from './pages/Schedule'
 import Assistant from './pages/Assistant'
 import Login from './pages/Login'
+import Library from './pages/Library'
 
 export default function App() {
   const { state, auth } = useStore()
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/content" element={<Content />} />
         <Route path="/coach" element={<Coach />} />
         <Route path="/assistant" element={<Assistant />} />
+        <Route path="/library" element={<Library />} />
         <Route path="/education" element={<Education />} />
         <Route path="/leader" element={<Leader />} />
         <Route path="/settings" element={<Settings />} />

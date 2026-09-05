@@ -6,6 +6,7 @@
    ========================================================= */
 import { STAGES, addDays, daysBetween, fmtDate, stageIndex, today } from '../store'
 import { STAGE_TIP, followupStatus, isAnniversaryToday, weeklyReport } from './coaching'
+import { catLabel, searchLibrary } from './library'
 
 const has = (q, re) => re.test(q)
 
@@ -61,6 +62,18 @@ export function answerLocally(question, state) {
   const q = question.replace(/\s+/g, ' ').trim()
   const ai = state.profile.aiName
   const actions = []
+
+  // 0) 자료실 검색
+  if (/자료|설명서|파일|문서|정보\s*(찾|보내|줘)|찾아\s*줘/.test(q) && !/고객\s*(등록|추가)/.test(q)) {
+    const kw = q.replace(/(자료실|자료|설명서|파일|문서|정보|찾아\s*줘|찾아|보내\s*줘|보내|줘|좀|있어|있나|뭐|무엇|알려)/g, ' ').replace(/[?？.!]/g, ' ').trim()
+    const found = searchLibrary(state.library || [], kw, { limit: 5 })
+    if (!(state.library || []).length) return { intent: 'library', text: '자료실이 비어 있습니다. 제품 설명서·건강 정보·성공 사례를 넣어 두면 찾아 드리고 고객에게 바로 보낼 수 있어요.', customers: [], events: [], actions: [{ label: '자료실 열기', to: '/library' }] }
+    return {
+      intent: 'library',
+      text: found.length ? `"${kw || '전체'}" 관련 자료 ${found.length}개를 찾았습니다.\n\n` + found.map((i, n) => `${n + 1}. [${catLabel(i.category)}] ${i.title}${i.summary ? ' — ' + i.summary.slice(0, 80) : ''}`).join('\n') + '\n\n아래 버튼으로 열어 고객에게 바로 보낼 수 있어요.' : `"${kw}" 관련 자료를 찾지 못했습니다. 다른 말로 검색하거나 자료실에 추가해 주세요.`,
+      customers: [], events: [], actions: [...found.slice(0, 3).map((i) => ({ label: `📚 ${i.title.slice(0, 14)}`, to: `/library?id=${i.id}` })), { label: '자료실', to: `/library?q=${encodeURIComponent(kw)}` }],
+    }
+  }
 
   // 1) 특정 고객 질문
   const c = findCustomer(q, state)
