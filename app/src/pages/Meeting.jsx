@@ -35,6 +35,7 @@ export default function Meeting() {
   const [stage, setStage] = useState(c?.stage || 'new')
   const [feedback, setFeedback] = useState(null) // { source, score, grade, rows, summary, text }
   const [prepAI, setPrepAI] = useState('')
+  const [organized, setOrganized] = useState(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [step])
@@ -53,6 +54,35 @@ export default function Meeting() {
     setLoading(false)
   }
 
+  const localOrganize = (text) => {
+    const sentences = text.split(/[.!?\n]/).map((x) => x.trim()).filter(Boolean)
+    return {
+      result: /좋|긍정|관심 많|웃|고맙|감사|하겠|해보/.test(text) ? 'positive' : /비싸|부담|나중|바쁘|거절|싫|미지근|글쎄/.test(text) ? 'negative' : 'neutral',
+      interest: c.interest || 2,
+      stage: /계약|가입|결제|사인/.test(text) ? 'closed' : /상의|생각해|고민해|결정/.test(text) ? 'decision' : /제안|설명|소개했|보여/.test(text) ? 'proposal' : (c.stage || 'new'),
+      nextAction: sentences.find((x) => /약속|보내|다음|연락|전화|만나|자료/.test(x)) || '',
+      personalFacts: sentences.filter((x) => /(가족|자녀|아들|딸|남편|아내|부모|건강|무릎|병원|취미|여행|골프|등산|생일|기념일|이사|은퇴)/.test(x)).slice(0, 4),
+      promises: sentences.filter((x) => /약속|보내(기|드리)|알려 드/.test(x)).slice(0, 3),
+      summary: sentences.slice(0, 2).join('. '),
+    }
+  }
+  const organize = async () => {
+    if (!memo.trim()) return
+    setLoading(true)
+    const r = await askAI('organize', { customer: { ...c, stage }, count, memo }, profile, () => JSON.stringify(localOrganize(memo)))
+    let o = null
+    try { o = JSON.parse(r.text) } catch { o = localOrganize(memo) }
+    if (o) {
+      setOrganized({ ...o, source: r.source })
+      if (o.result) setResult(o.result)
+      if (o.interest) setInterest(o.interest)
+      if (o.stage) setStage(o.stage)
+      if (o.nextAction && !nextAction) setNextAction(o.nextAction)
+      notify('기록을 정리했습니다. 내용을 확인하고 저장하세요')
+    }
+    setLoading(false)
+  }
+
   const finish = async () => {
     setLoading(true)
     const meeting = { id: meetingId, customerId: c.id, date: today(), step: 7, done: true, plan, memo, result, nextAction, interest, stage, eventId: event?.id }
@@ -64,7 +94,8 @@ export default function Meeting() {
     setFeedback(fb)
     dispatch({ type: 'meeting.add', data: { ...meeting, feedback: fb.text, score: fb.score } })
     const stageChanged = stage !== (c.stage || 'new')
-    dispatch({ type: 'customer.update', id: c.id, data: { interest, stage, lastContact: today(), nextFollowup: addDays(today(), FOLLOWUP_DAYS[interest] || 7), ...(stageChanged ? { stageChangedAt: today() } : {}) } })
+    const facts = (organized?.personalFacts || []).filter((f) => f && !(c.family || '').includes(f))
+    dispatch({ type: 'customer.update', id: c.id, data: { interest, stage, lastContact: today(), nextFollowup: addDays(today(), FOLLOWUP_DAYS[interest] || 7), ...(stageChanged ? { stageChangedAt: today() } : {}), ...(facts.length ? { family: [c.family, ...facts].filter(Boolean).join(' / ') } : {}) } })
     if (stageChanged && stage === 'closed') {
       twoTwoTwoEvents(c).forEach((e) => dispatch({ type: 'event.add', data: e }))
       notify('계약 축하합니다! 2일·2주·2개월 연락 일정을 만들었습니다')
@@ -171,6 +202,16 @@ export default function Meeting() {
             <div className="row"><span className="step-num">6</span><h3>직접 만나기 · 기록</h3></div>
             <p className="muted">만남이 끝나면 바로, 20분 안에. 말로 하셔도 됩니다.</p>
             <VoiceInput value={memo} onChange={setMemo} rows={6} placeholder="오늘 나눈 이야기, 상대가 한 말 그대로, 가족·건강·취미 등 개인적인 이야기, 약속한 것" />
+            <button className="btn btn-soft-green" onClick={organize} disabled={!memo.trim() || loading}>{loading ? '정리 중…' : `✨ ${state.profile.aiName}가 자동 정리 (반응·관심도·단계·다음 행동·기억할 것)`}</button>
+            {organized && (
+              <div className="card soft-green" style={{ padding: 12 }}>
+                <p className="small"><b>정리 결과</b> {organized.source === 'local' ? '(기본 규칙)' : '(AI)'}</p>
+                {organized.summary && <p className="small">{organized.summary}</p>}
+                {organized.personalFacts?.length > 0 && <p className="small">👨‍👩‍👧 기억할 것: {organized.personalFacts.join(' · ')} <span className="muted">(저장 시 고객 정보에 추가)</span></p>}
+                {organized.promises?.length > 0 && <p className="small">🤝 내 약속: {organized.promises.join(' · ')}</p>}
+                <p className="small muted">아래 반응·관심도·단계·다음 행동에 반영했습니다. 틀리면 직접 고치세요.</p>
+              </div>
+            )}
             <div className="field">
               <label>오늘 반응</label>
               <div className="chips">

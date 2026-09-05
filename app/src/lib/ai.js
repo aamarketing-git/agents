@@ -13,7 +13,7 @@ async function callServer(task, payload, profile) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ task, payload, profile }),
   })
-  if (!res.ok) throw new Error('server ' + res.status)
+  if (!res.ok) { const e = new Error('server ' + res.status); e.status = res.status; throw e }
   const data = await res.json()
   if (!data.text) throw new Error('empty')
   return data.text
@@ -25,8 +25,11 @@ export async function askAI(task, payload, profile, localFallback) {
       const text = await callServer(task, payload, profile)
       serverAvailable = true
       return { text, source: 'ai' }
-    } catch {
-      serverAvailable = false
+    } catch (e) {
+      if (e.status === 429) return { text: '오늘 AI 사용 한도에 도달했습니다. 내일 다시 이용하거나 요금제를 올려 주세요. 지금은 기본 코칭으로 답합니다.\n\n' + localFallback(), source: 'limit' }
+      if (e.status === 401) return { text: localFallback(), source: 'local' }
+      if (e.status === 404 || e.status === 503) serverAvailable = false
+      else return { text: localFallback(), source: 'local' }
     }
   }
   return { text: localFallback(), source: 'local' }

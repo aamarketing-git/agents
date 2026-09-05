@@ -5,6 +5,8 @@
    - 클라이언트가 도구를 실행(쓰기 도구는 확인 카드) 후 tool_result 를 붙여 다시 호출
    ========================================================= */
 import Anthropic from '@anthropic-ai/sdk'
+import { authEnabled, checkUsage, getUser } from './_lib/auth.js'
+import { json, todayKST } from './_lib/http.js'
 
 const client = new Anthropic()
 
@@ -103,6 +105,10 @@ ${context?.summary || '(없음)'}`
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' })
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'no-key' })
+  const user = await getUser(req)
+  if (authEnabled && !user) return json(res, 401, { error: 'login' })
+  const usage = await checkUsage(user, todayKST())
+  if (!usage.ok) return json(res, 429, { error: 'limit', used: usage.used, limit: usage.limit })
   try {
     const { messages, profile, context } = req.body || {}
     if (!Array.isArray(messages) || messages.length === 0) return res.status(400).json({ error: 'messages' })

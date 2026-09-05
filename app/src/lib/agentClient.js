@@ -81,7 +81,7 @@ async function callServer(messages, state) {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, profile: { ...state.profile, professionLabel: state.profile.profession }, context: { today: today(), summary: buildContext(state) } }),
   })
-  if (!res.ok) throw new Error('server ' + res.status)
+  if (!res.ok) { const e = new Error('server ' + res.status); e.status = res.status; throw e }
   return res.json()
 }
 
@@ -112,7 +112,8 @@ export async function runAgentTurn({ history, userText, state, runPlan, confirm,
     }
     return { messages, text: '' }
   } catch (e) {
-    if (available === null) available = false
+    if (e.status === 429) { onText?.('오늘 AI 에이전트 사용 한도에 도달했습니다. 내일 다시 이용하거나 요금제를 올려 주세요. 지금은 기본 비서로 처리합니다.'); return null }
+    if (e.status === 404 || e.status === 503) available = false
     return null
   }
 }

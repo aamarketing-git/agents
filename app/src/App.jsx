@@ -15,17 +15,23 @@ import Leader from './pages/Leader'
 import Settings from './pages/Settings'
 import Schedule from './pages/Schedule'
 import Assistant from './pages/Assistant'
+import Login from './pages/Login'
 
 export default function App() {
-  const { state } = useStore()
+  const { state, auth } = useStore()
   const { pathname } = useLocation()
   const ready = !!state.profile.aiName && !!state.profile.userName
 
-  if (!ready && pathname !== '/start') return <Navigate to="/start" replace />
+  if (auth.cloud === null) return <div className="app"><div className="page center" style={{ justifyContent: 'center' }}><p className="muted">불러오는 중…</p></div></div>
+  const needLogin = auth.cloud && !auth.user && !auth.localOnly
+  if (needLogin && pathname !== '/login') return <Navigate to="/login" replace />
+  if (!needLogin && pathname === '/login' && auth.user) return <Navigate to={ready ? '/' : '/start'} replace />
+  if (!ready && !needLogin && pathname !== '/start' && pathname !== '/login') return <Navigate to="/start" replace />
 
   return (
     <div className="app">
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route path="/start" element={<Onboarding />} />
         <Route path="/" element={<Home />} />
         <Route path="/today" element={<Today />} />
@@ -43,7 +49,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {ready && pathname !== '/start' && <BottomNav />}
+      {ready && pathname !== '/start' && pathname !== '/login' && <BottomNav />}
       <Toaster />
     </div>
   )

@@ -6,6 +6,7 @@
 - 리서치 1 · 직종·기능·영업 베스트프랙티스: [docs/RESEARCH_MARKET.md](docs/RESEARCH_MARKET.md)
 - 리서치 2 · 수익모델(광고 vs 구독): [docs/RESEARCH_MONETIZATION.md](docs/RESEARCH_MONETIZATION.md)
 - 리서치 3 · 다음 기능 우선순위: [docs/RESEARCH_NEXT_FEATURES.md](docs/RESEARCH_NEXT_FEATURES.md)
+- **Vercel 배포(베타: 계정·클라우드 저장·알림)**: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
 
@@ -25,6 +26,12 @@ npm run preview
 ```
 
 AI 코칭을 실제 모델로 쓰려면 `app/api/coach.js`를 Vercel 등 서버 함수로 배포하고 `ANTHROPIC_API_KEY`를 설정합니다. 없으면 규칙 기반 로컬 응답으로 동작합니다. 광고는 `app/.env.example` 참고.
+
+## 배포 형태 두 가지
+| 형태 | 주소 | 계정·동기화 | AI | 알림 |
+|---|---|---|---|---|
+| GitHub Pages (정적) | https://aamarketing-git.github.io/agents/ | 없음 (기기 저장) | 규칙 기반 | 없음 |
+| **Vercel (베타)** | 배포 후 `https://<프로젝트>.vercel.app` | 이메일 로그인 · Upstash Redis 저장 · 다기기 | Claude 에이전트·자동 정리 | 아침 브리핑·주간 리포트 푸시 |
 
 ## 주요 기능
 1. **너는 누구야?** — 사용자가 비서 이름을 직접 지어 줌. 홈 첫 화면 "당신의 커스텀 AI 비서 ○○ 입니다."

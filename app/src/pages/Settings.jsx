@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { PROFESSIONS, useStore } from '../store'
 import { aiStatus } from '../lib/ai'
+import { currentSubscription, disablePush, enablePush, pushSupported } from '../lib/push'
 import { Disclosure, TopBar, useToast } from '../components/ui'
 
 /* 설정 : 비서 이름 · 내 이름 · 직종 · 글자 크기 · 요금제 · 데이터 */
@@ -12,12 +13,20 @@ const PLANS = [
   { id: 'premier', name: '프리미어 · 먼저 움직이는 비서', price: '월 39,000원', desc: '아침 브리핑 푸시 · 연락 시점 자동 알림 · 만남 후 자동 정리 · 주간 리포트 발송 · 클라우드 백업·동기화 · 리더 파트너 리포트' },
 ]
 export default function Settings() {
-  const { state, dispatch } = useStore()
+  const { state, dispatch, auth, signOut } = useStore()
   const nav = useNavigate()
   const p = state.profile
   const [aiName, setAiName] = useState(p.aiName)
   const [userName, setUserName] = useState(p.userName)
   const [toast, show] = useToast()
+  const [pushOn, setPushOn] = useState(false)
+  const [pushBusy, setPushBusy] = useState(false)
+  useEffect(() => { currentSubscription().then((s) => setPushOn(!!s)).catch(() => {}) }, [])
+  const togglePush = async () => {
+    setPushBusy(true)
+    try { if (pushOn) { await disablePush(); setPushOn(false); show('알림을 껐습니다') } else { await enablePush(); setPushOn(true); show('알림을 켰습니다. 테스트 알림을 보냈어요') } } catch (e) { show(e.message) }
+    setPushBusy(false)
+  }
 
   const backup = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
@@ -45,7 +54,29 @@ export default function Settings() {
     <>
       <TopBar title="설정" />
       <div className="page">
-        <Disclosure icon="🤖" title="AI 비서 · 내 정보" open>
+        <Disclosure icon="👤" title={auth.user ? `내 계정 · ${auth.user.email}` : auth.cloud ? '내 계정 · 로그인 안 됨' : '내 계정 · 이 기기 전용'} open>
+          {auth.user && (
+            <>
+              <p className="small">플랜: <b>{{ free: '무료', standard: '스탠다드', pro: '프로', premier: '프리미어' }[auth.user.plan] || auth.user.plan}</b>{auth.user.beta && <span className="badge green" style={{ marginLeft: 8 }}>베타 전체 개방</span>}</p>
+              <p className="small muted">{auth.syncing ? '☁️ 저장 중…' : auth.lastSaved ? `☁️ 마지막 저장 ${new Date(auth.lastSaved).toLocaleString('ko-KR')}` : '☁️ 클라우드 저장 켜짐'}{auth.error ? ` · ${auth.error}` : ''}</p>
+              <p className="small muted">같은 이메일로 다른 기기에서 로그인하면 같은 기록을 봅니다.</p>
+              {auth.health?.push && (
+                <button className={'btn ' + (pushOn ? 'btn-outline' : 'btn-green')} onClick={togglePush} disabled={pushBusy || !pushSupported()}>{pushBusy ? '처리 중…' : pushOn ? '🔔 아침 브리핑 알림 켜짐 · 끄기' : '🔔 아침 브리핑 · 연락 알림 켜기'}</button>
+              )}
+              {auth.health?.push && !pushSupported() && <p className="small muted">아이폰은 사파리에서 "홈 화면에 추가"한 뒤 그 아이콘으로 열어야 알림을 켤 수 있습니다.</p>}
+              <button className="btn btn-danger" onClick={async () => { if (window.confirm('로그아웃할까요? 이 기기의 화면 기록은 지워지고 계정에는 그대로 남습니다.')) { await signOut(); nav('/login', { replace: true }) } }}>로그아웃</button>
+            </>
+          )}
+          {!auth.user && auth.cloud && (
+            <>
+              <p className="small muted">로그인하면 기록이 계정에 저장되어 어디서나 이어지고, 아침 브리핑 알림과 AI 에이전트를 쓸 수 있습니다.</p>
+              <button className="btn btn-primary" onClick={() => nav('/login')}>로그인 · 가입</button>
+            </>
+          )}
+          {!auth.cloud && <p className="small muted">이 배포에는 계정 서버가 없어 기록이 기기 안에만 저장됩니다. 아래 백업 기능을 이용하세요.</p>}
+        </Disclosure>
+
+        <Disclosure icon="🤖" title="AI 비서 · 내 정보">
           <div className="field"><label>AI 비서 이름</label><input className="input" value={aiName} onChange={(e) => setAiName(e.target.value)} /></div>
           <div className="field"><label>내 이름</label><input className="input" value={userName} onChange={(e) => setUserName(e.target.value)} /></div>
           <div className="field">

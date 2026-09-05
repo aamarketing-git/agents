@@ -5,6 +5,10 @@
    - 응답 : { text }
    ========================================================= */
 import Anthropic from '@anthropic-ai/sdk'
+import { z } from 'zod'
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { authEnabled, checkUsage, getUser } from './_lib/auth.js'
+import { json, todayKST } from './_lib/http.js'
 
 const client = new Anthropic()
 
@@ -41,11 +45,38 @@ ${p.context || '(데이터 없음)'}
 연락할 고객: ${p.due}`,
 }
 
+/* 만남 기록 자동 정리 스키마 */
+const Organize = z.object({
+  result: z.enum(['positive', 'neutral', 'negative']).describe('오늘 반응'),
+  interest: z.number().int().min(1).max(5).describe('추정 관심도 1~5'),
+  stage: z.enum(['new', 'rapport', 'proposal', 'decision', 'closed', 'referral']).describe('추정 단계'),
+  nextAction: z.string().describe('다음 행동 한 줄 (언제·무엇). 없으면 빈 문자열'),
+  personalFacts: z.array(z.string()).describe('가족·건강·취미·기념일 등 기억할 개인 사실, 짧게'),
+  promises: z.array(z.string()).describe('내가 약속한 것'),
+  summary: z.string().describe('두 문장 요약'),
+})
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method' })
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: 'no-key' })
+  const user = await getUser(req)
+  if (authEnabled && !user) return json(res, 401, { error: 'login' })
+  const usage = await checkUsage(user, todayKST())
+  if (!usage.ok) return json(res, 429, { error: 'limit', used: usage.used, limit: usage.limit })
   try {
     const { task, payload, profile } = req.body || {}
+    if (task === 'organize') {
+      const p = payload || {}
+      const r = await client.messages.parse({
+        model: 'claude-opus-5',
+        max_tokens: 1500,
+        output_config: { effort: 'low', format: zodOutputFormat(Organize) },
+        system: SYSTEM_BASE(profile),
+        messages: [{ role: 'user', content: `아래 만남 기록을 구조화하세요. 기록에 없는 사실은 만들지 마세요.\n고객: ${p.customer?.name} (현재 단계 ${p.customer?.stage || 'new'}, 관심도 ${p.customer?.interest || 2}, ${p.count}번째 만남)\n기록: ${p.memo}` }],
+      })
+      if (!r.parsed_output) return res.status(200).json({ text: '' })
+      return res.status(200).json({ text: JSON.stringify(r.parsed_output) })
+    }
     const build = TASKS[task]
     if (!build) return res.status(400).json({ error: 'task' })
 

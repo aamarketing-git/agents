@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useReducer } from 'react'
+import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { LOCAL_ONLY_KEY, auth as authApi, cloud as cloudApi, getHealth } from './lib/api'
 
 /* =========================================================
    앱 상태 저장소 (브라우저 localStorage 기반, 백엔드 없이 동작)
@@ -108,6 +109,8 @@ function reducer(state, action) {
       return { ...state, progress: { ...state.progress, education: { ...state.progress.education, [action.id]: true } } }
     case 'coach.asked':
       return { ...state, progress: { ...state.progress, coachAsked: (state.progress.coachAsked || 0) + 1 } }
+    case 'hydrate':
+      return { ...initial, ...action.data, profile: { ...initial.profile, ...(action.data?.profile || {}) } }
     case 'reset':
       return initial
     default:
@@ -119,6 +122,11 @@ const Ctx = createContext(null)
 
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, load)
+  const [auth, setAuth] = useState(() => ({ user: null, cloud: null, health: null, syncing: false, lastSaved: null, error: '', localOnly: (() => { try { return localStorage.getItem(LOCAL_ONLY_KEY) === '1' } catch { return false } })() }))
+  const versionRef = useRef(0)
+  const skipSaveRef = useRef(true)
+  const timerRef = useRef(null)
+
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify(state)) } catch { /* 저장공간 부족 등 */ }
   }, [state])
@@ -127,13 +135,79 @@ export function StoreProvider({ children }) {
     document.documentElement.dataset.font = s === 'normal' ? '' : s
   }, [state.profile.fontScale])
 
+  /* 서버에서 내 상태 불러오기 (로그인 직후·앱 시작) */
+  const pullFromCloud = async (localState) => {
+    const doc = await cloudApi.load()
+    if (doc?.state) {
+      skipSaveRef.current = true
+      versionRef.current = doc.version || 0
+      dispatch({ type: 'hydrate', data: doc.state })
+      return 'loaded'
+    }
+    if (localState && (localState.customers.length || localState.profile.aiName)) {
+      const r = await cloudApi.save(localState, 0)
+      versionRef.current = r.version
+      return 'uploaded'
+    }
+    return 'empty'
+  }
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const h = await getHealth()
+      if (!alive) return
+      if (!h.cloud) { setAuth((a) => ({ ...a, cloud: false, health: h })); return }
+      try {
+        const me = await authApi.me()
+        if (!alive) return
+        if (me.user) { await pullFromCloud(state); if (alive) setAuth((a) => ({ ...a, cloud: true, health: h, user: me.user })) }
+        else setAuth((a) => ({ ...a, cloud: true, health: h, user: null }))
+      } catch { setAuth((a) => ({ ...a, cloud: true, health: h, user: null })) }
+    })()
+    return () => { alive = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /* 변경 시 1.5초 뒤 서버 저장 */
+  useEffect(() => {
+    if (!auth.user || !auth.cloud) return
+    if (skipSaveRef.current) { skipSaveRef.current = false; return }
+    clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(async () => {
+      setAuth((a) => ({ ...a, syncing: true }))
+      try {
+        const r = await cloudApi.save(state, versionRef.current)
+        versionRef.current = r.version
+        setAuth((a) => ({ ...a, syncing: false, lastSaved: r.updatedAt, error: '' }))
+      } catch (e) {
+        if (e.status === 409 && e.data?.server?.state) { skipSaveRef.current = true; versionRef.current = e.data.server.version; dispatch({ type: 'hydrate', data: e.data.server.state }) }
+        setAuth((a) => ({ ...a, syncing: false, error: e.status === 409 ? '다른 기기의 최신 내용으로 맞췄습니다' : '저장 실패 · 다시 시도합니다' }))
+      }
+    }, 1500)
+    return () => clearTimeout(timerRef.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, auth.user, auth.cloud])
+
+  const signIn = async (user) => { const how = await pullFromCloud(state); setAuth((a) => ({ ...a, user, error: '' })); return how }
+  const signOut = async () => {
+    try { await authApi.logout() } catch { /* ignore */ }
+    clearTimeout(timerRef.current)
+    skipSaveRef.current = true
+    dispatch({ type: 'reset' })
+    try { localStorage.removeItem(KEY) } catch { /* ignore */ }
+    setAuth((a) => ({ ...a, user: null, lastSaved: null }))
+  }
+  const useLocalOnly = () => { try { localStorage.setItem(LOCAL_ONLY_KEY, '1') } catch { /* ignore */ } setAuth((a) => ({ ...a, localOnly: true })) }
+
   const api = useMemo(() => ({
     state,
     dispatch,
+    auth, signIn, signOut, useLocalOnly,
     customer: (id) => state.customers.find((c) => c.id === id),
     meetingsOf: (id) => state.meetings.filter((m) => m.customerId === id).sort((a, b) => (a.date < b.date ? 1 : -1)),
     eventsOn: (d) => state.events.filter((e) => e.date === d).sort((a, b) => (a.time || '').localeCompare(b.time || '')),
-  }), [state])
+  }), [state, auth]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>
 }
