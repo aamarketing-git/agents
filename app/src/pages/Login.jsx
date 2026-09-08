@@ -68,6 +68,7 @@ export default function Login() {
       <button className="btn btn-ghost" onClick={() => { useLocalOnly(); nav('/start', { replace: true }) }}>로그인 없이 이 기기에서만 사용하기</button>
       <p className="small muted center">이 기기에서만 사용하면 기록이 기기 안에만 저장되고 알림·동기화는 쓸 수 없습니다. 나중에 설정에서 로그인할 수 있습니다.</p>
       {auth.health?.beta && <p className="small muted center">베타 · 모든 기능 무료 개방 중</p>}
+      <a className="btn btn-ghost" href={import.meta.env.BASE_URL + 'guide/'} target="_blank" rel="noreferrer">📖 사용 가이드 먼저 보기</a>
     </div>
   )
 }

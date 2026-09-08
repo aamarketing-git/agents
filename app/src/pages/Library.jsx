@@ -181,6 +181,7 @@ export default function Library() {
         {!open && !adding && (
           <Disclosure icon="💡" title="자료실 활용법">
             <p className="small">· 회사 제품 설명서, 성분표, 가격표를 PDF로 올려 두고 "오메가3 자료 찾아줘"라고 비서에게 말하세요.<br />· 고객에게 보낼 건강 정보·성공 사례는 "고객용"으로 분류해 두면 만남 후 바로 보낼 수 있어요.<br />· 오늘 복습할 자료를 매일 하나씩 읽으면 성장 로드맵 4단계가 채워집니다.<br />· AI 정리가 켜져 있으면 링크·PDF·사진도 요약해 검색과 답변에 씁니다.</p>
+            <a className="btn btn-ghost btn-sm" href={import.meta.env.BASE_URL + 'guide/'} target="_blank" rel="noreferrer">📖 전체 사용 가이드</a>
           </Disclosure>
         )}
       </div>

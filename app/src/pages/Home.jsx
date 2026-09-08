@@ -35,7 +35,7 @@ export default function Home() {
       <TopBar
         title={`${profile.aiName} · AI 비서`}
         back={false}
-        right={<button className="icon-btn" aria-label="설정" onClick={() => nav('/settings')}>⚙️</button>}
+        right={<div className="row" style={{ gap: 6 }}><a className="icon-btn" aria-label="사용 가이드" href={import.meta.env.BASE_URL + 'guide/'} target="_blank" rel="noreferrer">📖</a><button className="icon-btn" aria-label="설정" onClick={() => nav('/settings')}>⚙️</button></div>}
       />
       <div className="page">
         <section className="hero">

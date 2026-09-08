@@ -7,6 +7,8 @@
 - 리서치 2 · 수익모델(광고 vs 구독): [docs/RESEARCH_MONETIZATION.md](docs/RESEARCH_MONETIZATION.md)
 - 리서치 3 · 다음 기능 우선순위: [docs/RESEARCH_NEXT_FEATURES.md](docs/RESEARCH_NEXT_FEATURES.md)
 - **Vercel 배포(베타: 계정·클라우드 저장·알림)**: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
+- 사용 가이드(사용자용): 앱 내 `/guide/` 또는 [app/public/guide/guide.pdf](app/public/guide/guide.pdf)
+- Vercel 배포 가이드: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
 

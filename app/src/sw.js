@@ -6,7 +6,7 @@ import { clientsClaim } from 'workbox-core'
 self.skipWaiting(); clientsClaim()
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/api\//, /\/tips\//] }))
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/\/api\//, /\/tips\//, /\/guide\//] }))
 
 self.addEventListener('push', (e) => {
   let d = {}

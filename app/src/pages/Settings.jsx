@@ -123,7 +123,8 @@ export default function Settings() {
           <label className="btn btn-outline" style={{ cursor: 'pointer' }}>📤 백업 파일에서 복원<input type="file" accept="application/json" hidden onChange={restore} /></label>
           <button className="btn btn-danger" onClick={() => { if (window.confirm('모든 데이터를 지우고 처음부터 시작할까요?')) { dispatch({ type: 'reset' }); nav('/start', { replace: true }) } }}>모두 지우고 처음부터</button>
         </Disclosure>
-        <p className="center muted small">나의 커스텀 AI 비서 v0.1 · 웹·앱 공용</p>
+        <a className="btn btn-soft" href={import.meta.env.BASE_URL + 'guide/'} target="_blank" rel="noreferrer">📖 사용 가이드 보기 (PDF 내려받기 포함)</a>
+        <p className="center muted small">나의 커스텀 AI 비서 v0.3 베타 · 웹·앱 공용</p>
         {toast}
       </div>
     </>
