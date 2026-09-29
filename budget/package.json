@@ -1,0 +1,9 @@
+{
+  "name": "chalkak-budget",
+  "private": true,
+  "description": "찰칵 가계부 — Google Apps Script 가계부 (구글 시트 저장, Claude 영수증 인식)",
+  "scripts": {
+    "test": "TZ=Asia/Seoul node --test test/*.test.mjs",
+    "preview": "TZ=Asia/Seoul node test/preview-server.mjs"
+  }
+}

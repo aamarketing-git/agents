@@ -11,6 +11,7 @@
 - Vercel 배포 가이드: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
+- **찰칵 가계부** (프리랜서·일하는 주부용 가계부, 구글 시트 저장): [budget/](budget/README.md)
 
 ## 바로 열기
 
