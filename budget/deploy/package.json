@@ -1,0 +1,12 @@
+{
+  "name": "chalkak-budget",
+  "private": true,
+  "type": "module",
+  "description": "찰칵 가계부 — 배포용 (정적 앱 + 영수증 읽기 서버 함수)",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0"
+  }
+}

@@ -20,10 +20,16 @@
     notifyTimer = setTimeout(function () { listeners.forEach(function (f) { try { f(); } catch (e) { console.error(e); } }); }, 200);
   }
 
+  // claude.ai 밖(직접 배포한 사이트 등)에서 열렸는지
+  var STANDALONE = !(window.claude && typeof window.claude.use === 'function');
+
   window.BUDGET_ENV = {
     mode: 'web',
+    standalone: STANDALONE,
     subscribe: function (f) { listeners.push(f); },
-    photoNote: '사진·캡처 읽기는 claude.ai에서 열었을 때 내 Claude 계정으로 동작해요. 처음 한 번 허용을 물어요.'
+    photoNote: STANDALONE
+      ? '사진·캡처 읽기는 이 앱을 배포한 서버(Claude API)가 해요. 비밀번호를 정해 배포했다면 ‘내 데이터 → 설정’에 넣어 주세요.'
+      : '사진·캡처 읽기는 claude.ai에서 열었을 때 내 Claude 계정으로 동작해요. 처음 한 번 허용을 물어요.'
   };
 
   // 사진 입력은 이미지로 한정 (PDF는 구글 시트 판에서)
@@ -141,7 +147,7 @@
     };
   }
   function settingsOut() {
-    return { taxRate: Number(mem.settings.taxRate) || 0, savingGoal: Number(mem.settings.savingGoal) || 0, mailScan: false, mailQuery: '', onboarded: !!mem.settings.onboarded };
+    return { taxRate: Number(mem.settings.taxRate) || 0, savingGoal: Number(mem.settings.savingGoal) || 0, mailScan: false, mailQuery: '', onboarded: !!mem.settings.onboarded, hasPasscode: !!passcode() };
   }
   function bizFor(cat, fallback) { return cat === '사업경비' || cat === '사업소득' ? '사업' : (fallback || '개인'); }
   function mergeSources(a, b) {
@@ -245,7 +251,41 @@
     }
   }
 
+  function passcode() { try { return localStorage.getItem(LS_KEY + '-pass') || ''; } catch (e) { return ''; } }
+
+  function serverMessage(status, code) {
+    if (status === 404 || status === 405) return '영수증 읽기 서버가 없어요. 배포 안내의 ‘Vercel로 배포’를 따라 주세요. 그 전까지는 한 줄로 기록해 주세요.';
+    if (status === 401) return '앱 비밀번호가 맞지 않아요. ‘내 데이터 → 설정’에서 배포할 때 정한 비밀번호를 넣어 주세요.';
+    switch (code) {
+      case 'no_key': case 'bad_key': return '서버에 ANTHROPIC_API_KEY가 없거나 틀려요. 배포 설정을 확인해 주세요.';
+      case 'rate_limited': return '요청이 많아 잠시 멈췄어요. 조금 뒤 다시 올려 주세요.';
+      case 'refused': return '이 이미지는 읽을 수 없어요. 다른 사진으로 시도해 주세요.';
+      case 'too_long': return '내용이 너무 길어요. 결제 부분만 올려 주세요.';
+      case 'bad_request': return '사진을 읽을 수 없어요. 다른 사진(JPG·PNG)을 올려 주세요.';
+      default: return '읽기에 실패했어요. 잠시 뒤 다시 시도해 주세요.';
+    }
+  }
+
+  // 직접 배포한 사이트: 같은 사이트의 api/extract 서버 함수가 Claude API를 부름
+  function extractViaServer(opts) {
+    var body = { today: today(), rules: mem.rules.slice(0, 60) };
+    if (opts.b64) body.image = { data: opts.b64, mime: opts.mime };
+    else body.text = opts.text;
+    return fetch('api/extract', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-app-passcode': passcode() },
+      body: JSON.stringify(body)
+    }).catch(function () { throw new Error('인터넷 연결을 확인해 주세요.'); })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (j) {
+          if (r.ok && j.ext) return j.ext;
+          throw new Error(serverMessage(r.status, j.error));
+        });
+      });
+  }
+
   function extract(opts) {
+    if (STANDALONE) return extractViaServer(opts).then(normalizeExt);
     return capability('sample').then(function (sample) {
       if (!sample) throw new Error('영수증·캡처 읽기는 claude.ai에서 열었을 때만 돼요. 한 줄로 직접 기록해 주세요.');
       var check = opts.images
@@ -256,19 +296,21 @@
       return check.then(function () {
         return sample.json(extractPrompt(opts.text), opts.images ? { images: opts.images } : {}).catch(function (e) { throw new Error(sampleMessage(e)); });
       });
-    }).then(function (ext) {
-      if (!ext || typeof ext !== 'object' || Array.isArray(ext)) throw new Error('결제 내역을 읽지 못했어요. 다시 올려 주세요.');
-      return {
-        is_transaction: ext.is_transaction !== false,
-        type: ext.type === '수입' ? '수입' : '지출',
-        date: String(ext.date || ''), time: String(ext.time || ''),
-        merchant: String(ext.merchant || ''), payment_method: String(ext.payment_method || ''),
-        total: Math.round(Number(ext.total) || 0), business_likely: !!ext.business_likely,
-        items: Array.isArray(ext.items) ? ext.items.filter(function (it) { return it && typeof it === 'object'; }).map(function (it) {
-          return { name: String(it.name || ''), amount: Math.round(Number(it.amount) || 0), category: String(it.category || ''), sub: String(it.sub || '') };
-        }) : []
-      };
-    });
+    }).then(normalizeExt);
+  }
+
+  function normalizeExt(ext) {
+    if (!ext || typeof ext !== 'object' || Array.isArray(ext)) throw new Error('결제 내역을 읽지 못했어요. 다시 올려 주세요.');
+    return {
+      is_transaction: ext.is_transaction !== false,
+      type: ext.type === '수입' ? '수입' : '지출',
+      date: String(ext.date || ''), time: String(ext.time || ''),
+      merchant: String(ext.merchant || ''), payment_method: String(ext.payment_method || ''),
+      total: Math.round(Number(ext.total) || 0), business_likely: !!ext.business_likely,
+      items: Array.isArray(ext.items) ? ext.items.filter(function (it) { return it && typeof it === 'object'; }).map(function (it) {
+        return { name: String(it.name || ''), amount: Math.round(Number(it.amount) || 0), category: String(it.category || ''), sub: String(it.sub || '') };
+      }) : []
+    };
   }
 
   function b64ToBlob(b64, mime) {
@@ -394,7 +436,7 @@
 
     apiAddImage: after(function (k, base64, mime, name, source) {
       if (mime === 'application/pdf') throw new Error('PDF는 아직 못 읽어요. 화면을 캡처해서 올려 주세요.');
-      return extract({ images: [b64ToBlob(base64, mime)] }).then(function (ext) {
+      return extract({ images: [b64ToBlob(base64, mime)], b64: base64, mime: mime }).then(function (ext) {
         if (!ext.is_transaction || !ext.total) throw new Error('결제 내역을 찾지 못했어요. 영수증이 잘 보이게 다시 찍어 주세요.');
         return addTransaction(txFromExtract(ext, source || '영수증 사진'));
       }).then(function (res) {
@@ -474,6 +516,9 @@
       if (patch.taxRate !== undefined) mem.settings.taxRate = Math.max(0, Math.min(60, Number(patch.taxRate) || 0));
       if (patch.savingGoal !== undefined) mem.settings.savingGoal = Math.max(0, Math.round(Number(patch.savingGoal) || 0));
       if (patch.onboarded !== undefined) mem.settings.onboarded = !!patch.onboarded;
+      if (patch.passcode !== undefined && patch.passcode !== '') {
+        try { localStorage.setItem(LS_KEY + '-pass', String(patch.passcode)); } catch (e) { /* 저장 불가 */ }
+      }
       return putSettings().then(settingsOut);
     }),
 

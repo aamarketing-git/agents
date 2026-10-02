@@ -1,5 +1,17 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>찰칵 가계부</title>
-<!-- 자동 생성 파일: budget/web/build.mjs 로 만듭니다. 고칠 때는 apps-script/Index.html · Logic.gs · web/adapter.js 를 고치세요. -->
+<meta name="description" content="결제 문자·영수증을 넣으면 자동 분류하고 일·주·월·항목별로 보여주는 가계부">
+<meta name="theme-color" content="#1F5F55">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="찰칵 가계부">
+<!-- 자동 생성 파일: budget/web/build.mjs 로 만듭니다. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
@@ -116,6 +128,8 @@ textarea{height:auto;padding:12px 14px;font-size:13px;font-family:ui-monospace,M
 .check{display:flex;gap:12px;align-items:center;min-height:44px;font-size:14px}
 .check input{width:20px;height:20px;accent-color:var(--teal)}
 </style>
+</head>
+<body>
 <div class="app">
   <main id="main" aria-live="polite"></main>
   <nav class="tabs" id="tabs" aria-label="메뉴"></nav>
@@ -1855,3 +1869,8 @@ call('apiBootstrap').then(function (b) {
   append(document.getElementById('main'), h('div', { class: 'card' }, h('h2', null, '열 수 없어요'), h('div', { class: 'sub' }, errMsg(e))));
 });
 </script>
+<script>
+if ('serviceWorker' in navigator) addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+</script>
+</body>
+</html>

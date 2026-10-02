@@ -26,6 +26,10 @@
 
 두 판은 화면(`Index.html`)과 로직(`Logic.gs`)을 공유합니다. 웹 판은 `web/adapter.js`가 서버 함수(`api*`)를 브라우저 안에서 같은 모양으로 구현하고, `node budget/web/build.mjs`가 세 파일을 합쳐 `web/index.html` 한 파일을 만듭니다. 세 파일을 고친 뒤에는 다시 빌드하세요.
 
+## 배포
+
+`budget/deploy/`가 그대로 올리는 배포 묶음입니다 (빌드가 만듦). 홈 화면 설치(PWA)·오프라인 열기·영수증 읽기 서버 함수(`api/extract.js`, Vercel)가 들어 있습니다. Vercel에서 이 저장소를 가져와 Root Directory를 `budget/deploy`로, 환경 변수 `ANTHROPIC_API_KEY`·`APP_PASSCODE`를 넣으면 됩니다. 자세한 순서는 [deploy/README.md](deploy/README.md).
+
 ## 구조
 
 서버를 따로 두지 않고 **구글 시트에 붙은 Apps Script**가 앱이자 서버입니다. 데이터는 전부 사용자 본인의 시트·드라이브에 있습니다.
