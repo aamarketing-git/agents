@@ -285,7 +285,7 @@ table.log tr.sel td{background:#fff0f6}
           <span style="font-size:22px">🔌</span>
           <div style="flex:1;min-width:200px"><b>로컬 AI(Ollama)에 연결되지 않았어요.</b><br><span class="hint" id="connBannerText">편지는 우편함에서 기다리고 있어요.</span></div>
           <button class="btn sm" id="bannerRetry">🔄 다시 시도</button>
-          <button class="btn sm gold" id="bannerGuide">❔ 해결 방법</button>
+          <button class="btn sm gold" id="bannerGuide">🛠 해결 방법</button>
           <button class="btn sm" id="bannerDemo">🧪 체험 모드로 보기</button>
         </div>
       </div>
@@ -665,26 +665,48 @@ function walkTree(answers){
    로컬 AI 호출 (Ollama /v1/systemone)
    ========================================================= */
 function cmpVer(a,b){const pa=String(a).split(/[.-]/).map(x=>parseInt(x)||0),pb=String(b).split('.').map(x=>parseInt(x)||0);for(let i=0;i<3;i++){if((pa[i]||0)!==(pb[i]||0))return (pa[i]||0)-(pb[i]||0)}return 0}
+/* ---- 연결 진단: 꺼짐 / CORS 차단 / localhost↔127.0.0.1 문제를 구분 ---- */
+const IS_FILE=location.protocol==='file:';
+const OS=/Win/i.test(navigator.platform||navigator.userAgent)?'win':/Mac/i.test(navigator.platform||navigator.userAgent)?'mac':'linux';
+function baseCandidates(){const b=settings.baseUrl.replace(/\/$/,'');const c=[b];
+  if(b.includes('localhost'))c.push(b.replace('localhost','127.0.0.1'));else if(b.includes('127.0.0.1'))c.push(b.replace('127.0.0.1','localhost'));return c}
+async function timedFetch(url,opt={},ms=3000){const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),ms);try{return await fetch(url,{...opt,signal:ctl.signal})}finally{clearTimeout(tm)}}
+async function probe(base){
+  try{const r=await timedFetch(base+'/api/version');const j=await r.json();return {state:'ok',base,version:j.version}}
+  catch(e){
+    // 응답을 읽을 수 없어도(no-cors) 서버가 대답하면 = 켜져 있지만 브라우저가 막는 중
+    try{await timedFetch(base+'/api/version',{mode:'no-cors'});return {state:'cors',base}}catch(e2){return {state:'down',base}}
+  }
+}
+async function diagnose(){let best=null;for(const b of baseCandidates()){const r=await probe(b);if(r.state==='ok')return r;if(!best||r.state==='cors')best=r}return best}
+let autoRetryTimer=null;
+function scheduleAutoRetry(){if(autoRetryTimer)return;autoRetryTimer=setInterval(async()=>{if(settings.demo){clearInterval(autoRetryTimer);autoRetryTimer=null;return}
+  await checkConnection(true);if(conn.ok){clearInterval(autoRetryTimer);autoRetryTimer=null;toast('🟢 Ollama 연결됐어요! 기다리던 편지를 처리할게요');if(inbox.length)runPipeline()}},5000)}
+function diagText(){
+  if(conn.reason==='cors')return `<b>Ollama는 켜져 있어요 ✅ 그런데 브라우저가 연결을 막고 있어요 (CORS).</b> 파일을 더블클릭해 열면 출처가 <code>${IS_FILE?'file:// (null)':esc(location.origin)}</code>라서 Ollama가 거절해요. 아래 “해결 방법”을 눌러 주세요.`;
+  return `<b>${esc(settings.baseUrl)}에서 Ollama가 대답하지 않아요.</b> Ollama가 꺼져 있거나 다른 주소/포트일 수 있어요. (localhost와 127.0.0.1 둘 다 시도했어요)`;
+}
 async function checkConnection(silent){
   const pill=$('#connPill'),txt=$('#connText');
   pill.className='pill';txt.textContent='연결 확인 중…';
-  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),3000);
-  try{
-    const r=await fetch(settings.baseUrl.replace(/\/$/,'')+'/api/version',{signal:ctl.signal});
-    const j=await r.json();conn={ok:true,checked:true,version:j.version};
-    if(j.version&&cmpVer(j.version,'0.35.0')<0){pill.className='pill warn';txt.textContent=`Ollama ${j.version} · 0.35 이상 필요`;conn.old=true}
-    else{pill.className='pill ok';txt.textContent=`Ollama ${j.version||''} 연결됨`}
-    // 모델 설치 확인 (참고용)
-    try{const t=await (await fetch(settings.baseUrl.replace(/\/$/,'')+'/api/tags')).json();
+  const d=await diagnose();
+  if(d.state==='ok'){
+    if(d.base!==settings.baseUrl.replace(/\/$/,'')){settings.baseUrl=d.base;saveSettings();$('#setUrl').value=d.base;toast(`🔧 주소를 <code>${esc(d.base)}</code>로 자동 변경했어요`,4000)}
+    conn={ok:true,checked:true,version:d.version};
+    if(d.version&&cmpVer(d.version,'0.35.0')<0){pill.className='pill warn';txt.textContent=`Ollama ${d.version} · 0.35 이상 필요`;conn.old=true}
+    else{pill.className='pill ok';txt.textContent=`Ollama ${d.version||''} 연결됨`}
+    try{const t=await (await timedFetch(settings.baseUrl.replace(/\/$/,'')+'/api/tags')).json();
       const names=(t.models||[]).map(m=>m.name||m.model);const want=settings.model.includes(':')?settings.model:settings.model+':latest';
       if(names.length&&!names.includes(want)&&!names.includes(settings.model)){pill.className='pill warn';txt.textContent=`${settings.model} 모델 없음 · ollama pull 필요`;conn.noModel=true}
     }catch(e){}
     $('#connBanner').classList.remove('show');
-  }catch(e){
-    conn={ok:false,checked:true,msg:String(e&&e.message||e)};
-    pill.className='pill bad';txt.textContent='Ollama 연결 안 됨';
-    if(!settings.demo&&!silent)$('#connBanner').classList.add('show');
-  }finally{clearTimeout(tm)}
+  }else{
+    conn={ok:false,checked:true,reason:d.state};
+    pill.className=d.state==='cors'?'pill warn':'pill bad';
+    txt.textContent=d.state==='cors'?'Ollama 켜짐 · 브라우저가 차단(CORS)':'Ollama 연결 안 됨';
+    $('#connBannerText').innerHTML=diagText()+' 편지는 우편함에서 기다리고, 연결되면 자동으로 이어서 처리해요.';
+    if(!settings.demo){if(!silent||inbox.length)$('#connBanner').classList.add('show');scheduleAutoRetry()}
+  }
 }
 async function decideReal(msg){
   const req=buildRequest(msg);const body=JSON.stringify(req);
@@ -1240,37 +1262,49 @@ function ceoDecide(e,aid){
 }
 
 /* ---- 오류 안내 ---- */
-function handleAIError(err){
+async function handleAIError(err){
   let detail='';
-  if(err.kind==='network')detail='브라우저가 Ollama에 닿지 못했어요. (꺼져 있거나, 브라우저 보안(CORS)으로 막혔을 수 있어요)';
-  else if(err.kind==='http'&&err.status===404)detail=`404 — <code>/v1/systemone</code>을 찾지 못했어요. Ollama 버전이 0.35보다 낮거나, 모델 <b>${esc(settings.model)}</b>이 설치되지 않았을 수 있어요.`;
+  if(err.kind==='network'){await checkConnection(true);detail=conn.ok?'요청 중 연결이 끊겼어요: '+esc(err.msg):diagText()}
+  else if(err.kind==='http'&&err.status===404)detail=`404 — <code>/v1/systemone</code>을 찾지 못했어요. Ollama 버전이 0.35보다 낮거나, 모델 <b>${esc(settings.model)}</b>이 설치되지 않았을 수 있어요. (<code>ollama --version</code>, <code>ollama pull ${esc(settings.model)}</code>)`;
+  else if(err.kind==='http'&&err.status===403)detail='403 — Ollama가 이 페이지의 출처를 거절했어요 (CORS). 아래 방법 A 또는 B로 해결돼요.';
   else if(err.kind==='http')detail=`HTTP ${err.status} 오류`;
-  else detail=esc(err.kind||'오류');
-  $('#connBannerText').innerHTML=detail+' 편지는 우편함에서 기다리고 있어요.';
+  else detail=esc(err.msg||err.kind||'오류');
+  $('#connBannerText').innerHTML=detail+' 편지는 우편함에서 기다리고, 연결되면 자동으로 이어서 처리해요.';
   $('#connBanner').classList.add('show');
-  showGuide(detail,err.msg);
-  checkConnection(true);
+  showGuide(detail,err.kind==='network'?'':err.msg);
+  if(!settings.demo)scheduleAutoRetry();
 }
 function showGuide(detail,raw){
+  const cmdA={mac:['launchctl setenv OLLAMA_ORIGINS "*"','그다음 메뉴 막대의 Ollama 아이콘 → Quit Ollama → Ollama 다시 실행'],
+    win:['setx OLLAMA_ORIGINS "*"','그다음 작업 표시줄 트레이의 Ollama 아이콘 → Quit → Ollama 다시 실행 (명령 프롬프트에서 입력)'],
+    linux:['sudo systemctl edit ollama  →  [Service] 아래에 Environment="OLLAMA_ORIGINS=*" 추가','그다음 sudo systemctl restart ollama  (직접 실행 중이면: OLLAMA_ORIGINS="*" ollama serve)']}[OS];
+  const cors=conn.reason==='cors'||(detail||'').includes('CORS');
   openModal(`<h3>🔌 로컬 AI(Ollama) 연결 도움말</h3>
     ${detail?`<div class="warnlist">${detail}${raw?`<div class="hint" style="margin-top:4px">원문: ${esc(raw)}</div>`:''}</div>`:''}
+    <div class="${cors?'okline':''}" style="${cors?'':'border:2px solid #2b2340;border-radius:6px;padding:6px 10px;margin-bottom:8px'}">
+      <b>🅰️ 방법 A (추천) — Ollama에 “이 파일 허용” 설정</b> ${OS==='win'?'(Windows)':OS==='mac'?'(macOS)':'(Linux)'}<br>
+      <code style="display:inline-block;margin:4px 0">${esc(cmdA[0])}</code> <button class="btn sm" id="cpA">📋 복사</button><br>
+      <span class="hint">${esc(cmdA[1])}. 재시작하지 않으면 적용되지 않아요!</span>
+    </div>
+    <div style="border:2px solid #2b2340;border-radius:6px;padding:6px 10px;margin-bottom:8px">
+      <b>🅱️ 방법 B — 설정 없이: 로컬 주소로 열기</b><br>
+      Ollama는 <code>http://localhost</code>에서 연 페이지는 기본으로 허용해요. 이 HTML이 있는 폴더에서 터미널을 열고:<br>
+      <code style="display:inline-block;margin:4px 0">${OS==='win'?'py -m http.server 8000':'python3 -m http.server 8000'}</code> <button class="btn sm" id="cpB">📋 복사</button><br>
+      <span class="hint">그다음 브라우저에서 <b>http://localhost:8000/saju-ai-company.html</b> 열기 (설정·기록은 주소마다 따로 저장돼요)</span>
+    </div>
     <ol>
-      <li><b>Ollama가 켜져 있나요?</b><br>Ollama 앱을 실행하거나 터미널에서 <code>ollama serve</code></li>
-      <li><b>버전이 0.35 이상인가요?</b><br><code>ollama --version</code> → 낮으면 ollama.com에서 최신 버전으로 업데이트 (systemone 기능은 0.35+)</li>
-      <li><b>모델을 받았나요?</b><br><code>ollama pull tev1:0.8b</code> (다른 모델을 골랐다면 <code>ollama pull tev1</code> / <code>ollama pull nimble</code>)</li>
-      <li><b>브라우저가 막혔나요? (CORS)</b> 파일을 더블클릭해 열면 출처가 <code>file://</code>이라 막힐 수 있어요. 허용 후 Ollama를 <b>재시작</b>하세요.
-        <ul>
-          <li>macOS: <code>launchctl setenv OLLAMA_ORIGINS "*"</code></li>
-          <li>Windows: 시스템 환경 변수에 <code>OLLAMA_ORIGINS</code> = <code>*</code> 추가</li>
-          <li>Linux: <code>OLLAMA_ORIGINS="*" ollama serve</code></li>
-        </ul></li>
-      <li><b>주소 확인</b>: 지금 주소는 <code>${esc(settings.baseUrl)}</code> (⚙️ 설정 탭에서 바꿀 수 있어요)</li>
+      <li><b>Ollama가 켜져 있나요?</b> 브라우저에서 <a href="${esc(settings.baseUrl)}" target="_blank">${esc(settings.baseUrl)}</a>을 열면 “Ollama is running”이 보여야 해요.</li>
+      <li><b>버전 0.35 이상?</b> <code>ollama --version</code> (systemone 기능은 0.35+)</li>
+      <li><b>모델을 받았나요?</b> <code>ollama pull ${esc(settings.model)}</code></li>
+      <li><b>주소</b>: 지금 <code>${esc(settings.baseUrl)}</code> (⚙️ 설정 탭에서 변경 · localhost/127.0.0.1은 자동으로 둘 다 시도)</li>
     </ol>
-    <p class="hint">이 앱은 AI 결과를 절대 지어내지 않아요. 연결 전에는 편지가 우편함에서 기다려요. 화면만 둘러보려면 <b>체험 모드</b>(키워드 규칙, 실제 AI 아님)를 켤 수 있어요.</p>
-    <div class="row" style="justify-content:flex-end"><button class="btn" id="gDemo">🧪 체험 모드 켜기</button><button class="btn primary" id="gRetry">🔄 다시 시도</button></div>`);
+    <p class="hint">연결이 안 된 동안엔 5초마다 자동으로 다시 확인하고, 연결되면 기다리던 편지를 바로 처리해요. 이 앱은 AI 결과를 절대 지어내지 않아요.</p>
+    <div class="row" style="justify-content:flex-end"><button class="btn" id="gDemo">🧪 체험 모드 (실제 AI 아님)</button><button class="btn primary" id="gRetry">🔄 지금 다시 시도</button></div>`);
+  const cp=(t,b)=>{(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('📋 복사했어요')).catch(()=>{prompt('아래 명령을 복사하세요',t)})};
+  $('#cpA').onclick=()=>cp(cmdA[0].split('  →')[0]);$('#cpB').onclick=()=>cp(OS==='win'?'py -m http.server 8000':'python3 -m http.server 8000');
   $('#gRetry').onclick=()=>{closeModal();retry()};$('#gDemo').onclick=()=>{closeModal();setDemo(true)};
 }
-async function retry(){await checkConnection();if(conn.ok||settings.demo){$('#connBanner').classList.remove('show');runPipeline()}}
+async function retry(){await checkConnection();if(conn.ok||settings.demo){$('#connBanner').classList.remove('show');toast('🟢 연결됐어요!');runPipeline()}else toast(conn.reason==='cors'?'🟡 Ollama는 켜져 있는데 브라우저가 막고 있어요 → 해결 방법을 봐 주세요':'🔴 아직 Ollama가 대답하지 않아요',3500)}
 
 /* =========================================================
    판단 패널
@@ -1576,7 +1610,7 @@ $('#setThr').oninput=e=>{settings.threshold=+e.target.value;$('#thrVal').textCon
 $('#checkConn').onclick=()=>checkConnection();$('#connPill').onclick=()=>checkConnection();
 $('#toggleDemo').onclick=()=>setDemo(!settings.demo);
 $('#guideBtn').onclick=()=>showGuide('','');
-$('#bannerRetry').onclick=retry;$('#bannerGuide').onclick=()=>showGuide('','');$('#bannerDemo').onclick=()=>setDemo(true);
+$('#bannerRetry').onclick=retry;$('#bannerGuide').onclick=()=>showGuide(conn.ok?'':diagText(),'');$('#bannerDemo').onclick=()=>setDemo(true);
 $('#exportCfg').onclick=()=>download('saju-company-config.json',{type:'saju-ai-company-config',exportedAt:new Date().toISOString(),settings:{model:settings.model,threshold:settings.threshold},config});
 $('#importCfgBtn').onclick=()=>$('#importCfg').click();
 $('#importCfg').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());const c=j.config||j;
@@ -1629,7 +1663,7 @@ syncWorld(false);
 renderWhy();renderLog();renderCEO();renderTree();renderEditor();updateStats();
 if(logEntries[0]){selectedEntryId=logEntries[0].id;renderPanel(logEntries[0],99)}
 requestAnimationFrame(frame);
-checkConnection(true).then(()=>{if(!conn.ok&&!settings.demo){$('#connBannerText').innerHTML='Ollama를 켜고 <code>ollama pull tev1:0.8b</code> 후 “다시 시도”를 눌러 주세요.';$('#connBanner').classList.add('show')}});
+checkConnection(true).then(()=>{if(!conn.ok&&!settings.demo)$('#connBanner').classList.add('show')});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
 </script>
 </body>
