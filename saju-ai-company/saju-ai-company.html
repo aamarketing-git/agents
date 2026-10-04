@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나의 AI 사주 컴퍼니</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4ecdf; --ink:#2b2340; --panel:#fffaf1; --panel2:#f7efff; --muted:#7a6f8f; --line:#2b2340;
+  --pink:#ff7aa2; --gold:#f4b63f; --mint:#3fc29d; --sky:#5b9dff; --red:#ff5d5d; --violet:#8b6cff;
+  --soft:#efe6d6;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(#e6dac6 1.2px, transparent 1.2px);
+  background-size:18px 18px;
+  font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  color:var(--ink); font-size:14px; line-height:1.45;
+}
+h1,h2,h3,h4,.jua{font-family:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-weight:400;margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+.box{background:var(--panel);border:3px solid var(--line);border-radius:6px;box-shadow:4px 4px 0 var(--line)}
+.btn{background:#fff;border:2px solid var(--line);border-radius:6px;padding:6px 12px;cursor:pointer;box-shadow:2px 2px 0 var(--line);font-weight:700;white-space:nowrap;transition:transform .06s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--line)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--line)}
+.btn.primary{background:var(--pink);color:#fff}
+.btn.mint{background:var(--mint);color:#fff}
+.btn.gold{background:var(--gold)}
+.btn.violet{background:var(--violet);color:#fff}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn.danger{background:#ffe1e1}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+input[type=text],textarea,select,input[type=number],input[type=url]{background:#fff;border:2px solid var(--line);border-radius:5px;padding:6px 8px;width:100%}
+textarea{resize:vertical}
+label.f{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px;font-weight:700}
+.muted{color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:2px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:13px;cursor:pointer}
+.pill .dot{width:10px;height:10px;border-radius:50%;background:#bbb;border:2px solid var(--line)}
+.pill.ok .dot{background:var(--mint)} .pill.bad .dot{background:var(--red)} .pill.warn .dot{background:var(--gold)}
+code,kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:#2b2340;color:#ffe9a8;padding:1px 6px;border-radius:4px;font-size:12.5px}
+
+/* ===== top ===== */
+header.top{display:flex;align-items:center;gap:14px;padding:14px 20px 8px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .logo{width:46px;height:46px;border:3px solid var(--line);border-radius:8px;background:var(--violet);display:grid;place-items:center;font-size:26px;box-shadow:3px 3px 0 var(--line)}
+.brand h1{font-size:27px;letter-spacing:.5px}
+.brand small{display:block;font-size:12.5px;color:var(--muted);font-family:'Gowun Dodum',sans-serif}
+.top .spacer{flex:1}
+.top .ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.top select{width:auto;padding:4px 6px}
+.demo-flag{display:none;background:var(--gold);border:2px solid var(--line);border-radius:6px;padding:4px 10px;font-weight:800}
+body.demo .demo-flag{display:inline-block}
+
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:6px 20px 0}
+.stat{padding:10px 14px;position:relative;overflow:hidden}
+.stat .lbl{font-size:12.5px;color:var(--muted);font-weight:700}
+.stat .num{font-family:'Jua',sans-serif;font-size:36px;line-height:1.1}
+.stat .num small{font-size:16px;margin-left:3px}
+.stat .ico{position:absolute;right:10px;top:8px;font-size:26px;opacity:.9}
+.stat.s1{background:#fff3f7}.stat.s2{background:#eef6ff}.stat.s3{background:#effbf6}.stat.s4{background:#fff8e6}.stat.s5{background:#f4efff}
+.stat.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{background:#ffe7a0}}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+main.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;padding:16px 20px}
+@media(max-width:1180px){main.grid{grid-template-columns:1fr}}
+
+/* office */
+.office-wrap{padding:10px;position:relative}
+.office-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.office-head h2{font-size:20px}
+.canvas-holder{position:relative;border:3px solid var(--line);border-radius:4px;overflow:hidden;background:#e3c195}
+#office{display:block;width:100%;cursor:pointer}
+.demo-badge{display:none;position:absolute;left:50%;top:4px;transform:translateX(-50%) rotate(-2deg);background:repeating-linear-gradient(45deg,#ffd64a 0 14px,#ffcb1f 14px 28px);border:3px solid var(--line);padding:4px 16px;font-family:'Jua',sans-serif;font-size:20px;box-shadow:4px 4px 0 var(--line);pointer-events:none;white-space:nowrap;z-index:3}
+body.demo .demo-badge{display:block}
+.conn-banner{display:none;position:absolute;left:12px;right:12px;bottom:12px;background:#fff;border:3px solid var(--line);border-radius:6px;padding:10px 12px;box-shadow:3px 3px 0 var(--line);z-index:3}
+.conn-banner.show{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ceo inbox */
+.ceo-bar{margin-top:10px;padding:10px 12px;background:#fff7dc;border:3px solid var(--line);border-radius:6px;display:none}
+.ceo-bar.show{display:block}
+.ceo-bar.has-decide{animation:ceoGlow 1.2s infinite}
+@keyframes ceoGlow{50%{box-shadow:0 0 0 4px #ffd54a}}
+.ceo-items{display:flex;gap:8px;overflow-x:auto;padding:6px 2px 2px}
+.ceo-item{min-width:220px;max-width:260px;background:#fff;border:2px solid var(--line);border-radius:6px;padding:8px;cursor:pointer;box-shadow:2px 2px 0 var(--line)}
+.ceo-item:hover{background:#fffbe9}
+.ceo-item .t{font-weight:800;font-size:13px}
+.ceo-item .s{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* composer */
+.composer{margin-top:12px;padding:12px}
+.composer .grid2{display:grid;grid-template-columns:160px 1fr;gap:8px}
+.examples{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ex{border:2px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer}
+.ex:hover{background:#fff1f6}
+.ex .amb{background:var(--gold);border-radius:4px;padding:0 4px;margin-left:4px;font-size:11px;font-weight:800}
+.queue-info{font-size:12.5px;color:var(--muted)}
+.auto-on{background:var(--mint)!important;color:#fff}
+
+/* decision panel */
+.panel{padding:12px;align-self:start;position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto}
+.panel h2{font-size:20px}
+.dp-empty{padding:30px 10px;text-align:center;color:var(--muted)}
+.dp-msg{background:#fff;border:2px solid var(--line);border-radius:6px;padding:8px 10px;margin:8px 0}
+.dp-msg .from{font-size:12px;color:var(--muted)}
+.dp-msg .subj{font-weight:800}
+.dp-msg .body{font-size:12.5px;margin-top:3px;max-height:60px;overflow:auto}
+.dp-meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.chip{display:inline-flex;gap:4px;align-items:center;background:var(--panel2);border:2px solid var(--line);border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.chip.ms{background:#e9f6ff}.chip.demo{background:var(--gold)}.chip.real{background:#dff7ec}
+.step{border:2px solid var(--line);border-radius:6px;background:#fff;padding:8px 10px;margin:8px 0;transition:opacity .35s, transform .35s}
+.step.hidden{opacity:.18;transform:translateY(4px)}
+.step.active{box-shadow:0 0 0 3px var(--pink)}
+.step.low{background:#fff1f1}
+.step-h{display:flex;align-items:center;gap:6px;font-weight:800}
+.step-h .n{width:22px;height:22px;border-radius:50%;background:var(--violet);color:#fff;display:grid;place-items:center;font-size:12px;border:2px solid var(--line)}
+.step-h .who{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:700}
+.tbadge{font-size:11px;background:#efe6ff;border:1.5px solid var(--line);border-radius:4px;padding:0 5px;font-weight:700}
+.bar-row{display:grid;grid-template-columns:92px 1fr 52px;gap:6px;align-items:center;font-size:12px;margin:3px 0}
+.bar-row .bl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .bl small{color:var(--muted)}
+.bar{height:12px;background:#f0e9de;border:1.5px solid var(--line);border-radius:3px;overflow:hidden;position:relative}
+.bar i{display:block;height:100%;width:0;background:#c9bde6;transition:width .9s cubic-bezier(.2,.9,.3,1.2)}
+.bar-row.chosen .bl{font-weight:800}
+.bar-row.chosen .bar i{background:linear-gradient(90deg,var(--pink),#ff9ec0)}
+.bar .th{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink)}
+.bp{text-align:right;font-variant-numeric:tabular-nums}
+.gauge{display:grid;grid-template-columns:62px 1fr 48px;gap:6px;align-items:center;font-size:12px;margin-top:6px}
+.g-track{height:14px;border:1.5px solid var(--line);border-radius:7px;background:#eee;position:relative;overflow:hidden}
+.g-fill{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1s ease, background 1s}
+.g-th{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.step .res{font-size:12.5px;margin-top:6px;font-weight:700}
+.result{border:3px solid var(--line);border-radius:6px;padding:10px;margin:10px 0;font-weight:800;background:#effbf6}
+.result.ceo{background:#fff7dc}
+.result .draft{font-weight:400;font-size:12.5px;margin-top:6px;background:#fff;border:1.5px dashed var(--line);border-radius:5px;padding:6px}
+details.mini summary{cursor:pointer;font-weight:800;margin:8px 0}
+
+/* tree */
+.tree, .tree ul{margin:0;padding:0}
+.tree ul{padding-left:20px}
+.tree li{list-style:none;position:relative;padding:3px 0 3px 18px}
+.tree>li{padding-left:0}
+.tree li li::before{content:'';position:absolute;left:0;top:0;bottom:0;border-left:2px dashed #bcb0d4}
+.tree li li:last-child::before{bottom:auto;height:17px}
+.tree li li::after{content:'';position:absolute;left:0;top:16px;width:16px;border-top:2px dashed #bcb0d4}
+.tree li li.hl::before,.tree li li.hl::after{border-color:var(--pink);border-style:solid;border-width:3px}
+.tree li li.hl:last-child::before{height:17px}
+.node{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--line);border-radius:6px;padding:2px 8px;background:#fff;cursor:pointer;font-size:13px;box-shadow:2px 2px 0 var(--line);vertical-align:middle}
+.node.q{background:#f1ebff}
+.node.act{background:#eafaf3}
+.node.ceo{background:#fff4cf}
+.node.ref{background:#f5f5f5;border-style:dashed;box-shadow:none}
+.node.missing{background:#ffe1e1}
+.node.hl{outline:3px solid var(--pink);outline-offset:1px}
+.node.hlceo{outline:3px solid var(--gold);outline-offset:1px}
+.node.sel{background:#ffe3ee}
+.edge{display:inline-block;font-size:11.5px;background:#fff;border:1.5px solid #bcb0d4;border-radius:999px;padding:0 7px;margin-right:4px;color:#5c5174;vertical-align:middle}
+li.hl>.edge{border-color:var(--pink);color:var(--ink);font-weight:800;background:#ffe9f1}
+.tree.mini .node{font-size:11.5px;padding:1px 6px;box-shadow:none}
+.tree.mini .edge{font-size:10.5px}
+.tree.mini li{padding-top:2px;padding-bottom:2px}
+
+/* tabs */
+.tabs-wrap{margin:0 20px 30px;padding:0}
+.tabs{display:flex;gap:4px;padding:10px 10px 0;border-bottom:3px solid var(--line);flex-wrap:wrap}
+.tab{border:3px solid var(--line);border-bottom:none;border-radius:6px 6px 0 0;padding:7px 14px;background:var(--soft);cursor:pointer;font-family:'Jua',sans-serif;font-size:16px;position:relative;top:3px}
+.tab.on{background:var(--panel)}
+.tabpane{display:none;padding:14px}
+.tabpane.on{display:block}
+
+/* log */
+.log-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.acc-box{display:flex;gap:14px;align-items:center;background:#fff;border:2px solid var(--line);border-radius:6px;padding:6px 12px}
+.acc-box b{font-family:'Jua',sans-serif;font-size:22px}
+.tbl-wrap{overflow:auto;max-height:560px;border:2px solid var(--line);border-radius:6px;background:#fff}
+table.log{border-collapse:collapse;width:100%;font-size:12.5px;min-width:980px}
+table.log th{position:sticky;top:0;background:#2b2340;color:#fff;text-align:left;padding:7px 8px;font-weight:700;z-index:1}
+table.log td{border-top:1.5px solid #e7dfd2;padding:7px 8px;vertical-align:top}
+table.log tr:hover td{background:#fffaf0}
+table.log tr.sel td{background:#fff0f6}
+.ans-chip{display:inline-block;margin:1px 3px 1px 0;padding:1px 6px;border-radius:4px;background:#f1ebff;border:1px solid #cbbfe5;white-space:nowrap}
+.ans-chip.low{background:#ffe1e1;border-color:#f3a5a5}
+.fb{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.fb .btn{padding:2px 7px;box-shadow:1px 1px 0 var(--line)}
+.fb .btn.on-up{background:var(--mint);color:#fff}
+.fb .btn.on-down{background:var(--red);color:#fff}
+.fb select{width:auto;font-size:12px;padding:2px 4px}
+.tag{display:inline-block;font-size:11px;padding:0 5px;border-radius:4px;border:1.5px solid var(--line);font-weight:800}
+.tag.demo{background:var(--gold)}.tag.ceo{background:#fff4cf}.tag.wait{background:#ffe1e1}
+.mini-conf{display:inline-block;width:60px;height:8px;border:1.5px solid var(--line);border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:4px}
+.mini-conf i{display:block;height:100%}
+
+/* editor */
+.editor-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
+@media(max-width:1000px){.editor-grid{grid-template-columns:1fr}}
+.tree-box{background:#fff;border:2px solid var(--line);border-radius:6px;padding:12px;overflow:auto;max-height:640px}
+.edit-box{background:#fff;border:2px solid var(--line);border-radius:6px;padding:12px}
+.opt-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.opt-table td,.opt-table th{padding:4px;border-bottom:1px solid #eee;vertical-align:top}
+.opt-table th{text-align:left;font-size:11.5px;color:var(--muted)}
+.opt-table input,.opt-table select{padding:4px 5px;font-size:12.5px}
+.warnlist{background:#ffe9e9;border:2px solid var(--red);border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:12.5px}
+.okline{background:#e6f8ef;border:2px solid var(--mint);border-radius:6px;padding:6px 10px;margin-bottom:8px;font-size:12.5px}
+.act-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.legend{font-size:12px;color:var(--muted);margin-top:8px}
+
+/* rationale */
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.why .card{background:#fff;border:2px solid var(--line);border-radius:6px;padding:12px;box-shadow:3px 3px 0 var(--line)}
+.why h4{font-size:17px;margin-bottom:6px}
+.why p,.why li{font-size:13.5px}
+.why ul{padding-left:18px;margin:4px 0}
+
+/* modal + toast */
+.modal-bg{position:fixed;inset:0;background:rgba(43,35,64,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal-bg.show{display:flex}
+.modal{max-width:640px;width:100%;max-height:90vh;overflow:auto;padding:18px}
+.modal h3{font-size:22px;margin-bottom:8px}
+.modal ol li{margin:6px 0}
+.act-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-top:10px}
+.act-pick .btn{text-align:left;white-space:normal}
+.act-pick .btn small{display:block;font-weight:400;color:var(--muted)}
+.toasts{position:fixed;right:16px;top:16px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.toast{background:#fff;border:3px solid var(--line);border-radius:6px;padding:8px 12px;box-shadow:3px 3px 0 var(--line);font-weight:700;animation:tin .25s ease;max-width:360px}
+@keyframes tin{from{transform:translateX(30px);opacity:0}}
+.hint{font-size:12px;color:var(--muted)}
+.set-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.set-grid .card{background:#fff;border:2px solid var(--line);border-radius:6px;padding:12px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo">🔮</div>
+    <div>
+      <h1>나의 AI 사주 컴퍼니</h1>
+      <small>사람은 나(👑 대표) 한 명 · 직원은 전부 AI · 판단은 내 컴퓨터의 로컬 AI가</small>
+    </div>
+  </div>
+  <div class="spacer"></div>
+  <div class="ctl">
+    <span class="demo-flag">🧪 체험 모드 · 실제 AI 아님</span>
+    <span class="pill" id="connPill" title="눌러서 연결 다시 확인"><span class="dot"></span><span id="connText">연결 확인 중…</span></span>
+    <label class="muted" for="modelSel" style="font-weight:700">모델</label>
+    <select id="modelSel">
+      <option value="tev1:0.8b">tev1:0.8b (기본)</option>
+      <option value="tev1">tev1</option>
+      <option value="nimble">nimble</option>
+    </select>
+    <button class="btn sm" id="guideBtn">❔ 연결 도움말</button>
+  </div>
+</header>
+
+<section class="stats">
+  <div class="box stat s1"><span class="ico">📮</span><div class="lbl">처리한 일</div><div class="num" id="stDone">0<small>건</small></div></div>
+  <div class="box stat s2"><span class="ico">⏱️</span><div class="lbl">평균 판단 시간</div><div class="num" id="stTime">0.00<small>초</small></div></div>
+  <div class="box stat s3"><span class="ico">💸</span><div class="lbl">AI 비용 (로컬)</div><div class="num" id="stCost">₩0</div></div>
+  <div class="box stat s4" id="stCeoBox"><span class="ico">👑</span><div class="lbl">대표 결재 대기</div><div class="num" id="stCeo">0<small>건</small></div></div>
+  <div class="box stat s5"><span class="ico">🎯</span><div class="lbl">판단 정확도 (👍/👎)</div><div class="num" id="stAcc">–</div></div>
+</section>
+
+<main class="grid">
+  <section>
+    <div class="box office-wrap">
+      <div class="office-head">
+        <h2>🏢 사무실</h2>
+        <span class="hint">캐릭터를 누르면 그 질문/업무 설정이 열려요 · 우편함 📬 → 질문 담당 → 업무 담당 순으로 편지가 이동해요</span>
+        <div class="spacer" style="flex:1"></div>
+        <label class="muted" style="font-size:12px;font-weight:700">속도</label>
+        <select id="speedSel" style="width:auto;padding:3px 6px">
+          <option value="0.6">느리게</option><option value="1">보통</option><option value="1.6">빠르게</option><option value="2.5">아주 빠르게</option>
+        </select>
+      </div>
+      <div class="canvas-holder" id="holder">
+        <canvas id="office"></canvas>
+        <div class="demo-badge">🧪 체험 모드 · 실제 AI 아님</div>
+        <div class="conn-banner" id="connBanner">
+          <span style="font-size:22px">🔌</span>
+          <div style="flex:1;min-width:200px"><b>로컬 AI(Ollama)에 연결되지 않았어요.</b><br><span class="hint" id="connBannerText">편지는 우편함에서 기다리고 있어요.</span></div>
+          <button class="btn sm" id="bannerRetry">🔄 다시 시도</button>
+          <button class="btn sm gold" id="bannerGuide">❔ 해결 방법</button>
+          <button class="btn sm" id="bannerDemo">🧪 체험 모드로 보기</button>
+        </div>
+      </div>
+
+      <div class="ceo-bar" id="ceoBar">
+        <div class="row"><b class="jua" style="font-size:17px">👑 대표 결재함</b><span class="hint">AI가 확신하지 못했거나 대표님 보고가 필요한 편지예요. 눌러서 결정해 주세요.</span></div>
+        <div class="ceo-items" id="ceoItems"></div>
+      </div>
+    </div>
+
+    <div class="box composer">
+      <div class="row" style="justify-content:space-between">
+        <h3 style="font-size:18px">✉️ 메시지 보내기</h3>
+        <span class="queue-info" id="queueInfo">우편함 대기 0통</span>
+      </div>
+      <div class="grid2" style="margin-top:8px">
+        <input type="text" id="inSender" placeholder="보낸 사람 (예: 김민지)">
+        <input type="text" id="inSubject" placeholder="제목 (비우면 본문 앞부분으로)">
+      </div>
+      <textarea id="inBody" rows="3" style="margin-top:8px" placeholder="고객 문의 내용을 입력하세요. (Ctrl+Enter로 보내기)"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn primary" id="sendBtn">📨 우편함에 넣기</button>
+        <button class="btn" id="autoBtn">▶ 자동 실행</button>
+        <label class="muted" style="font-size:12px;font-weight:700">간격</label>
+        <select id="autoInt" style="width:auto;padding:3px 6px">
+          <option value="3">3초</option><option value="5">5초</option><option value="8">8초</option><option value="12">12초</option>
+        </select>
+        <span class="hint">자동 실행은 아래 예시를 차례로 넣어요.</span>
+      </div>
+      <div class="examples" id="examples"></div>
+    </div>
+  </section>
+
+  <aside class="box panel" id="decisionPanel">
+    <div class="row" style="justify-content:space-between">
+      <h2>🧠 AI 판단 과정</h2>
+      <span class="chip" id="dpThresh">대표 호출 기준 &lt; 0.50</span>
+    </div>
+    <div id="dpBody"><div class="dp-empty">📭 아직 편지가 없어요.<br>아래에서 예시를 눌러 보내 보세요!</div></div>
+  </aside>
+</main>
+
+<section class="box tabs-wrap">
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-tab="log">📒 판단 기록</div>
+    <div class="tab" data-tab="tree">🌳 질문 흐름 · 편집</div>
+    <div class="tab" data-tab="why">💡 왜 이렇게 설계했나</div>
+    <div class="tab" data-tab="set">⚙️ 설정 · 백업</div>
+  </div>
+
+  <div class="tabpane on" id="pane-log">
+    <div class="log-head">
+      <div class="acc-box"><span>평가 <b id="accRated">0</b>건</span><span>👍 <b id="accUp">0</b></span><span>👎 <b id="accDown">0</b></span><span>정확도 <b id="accPct">–</b></span></div>
+      <span class="hint">👎를 누르면 올바른 업무를 고를 수 있어요. 이 데이터로 나중에 모델을 다시 학습시킬 수 있어요.</span>
+      <div style="flex:1"></div>
+      <button class="btn mint" id="exportLog">⬇️ 기록 JSON 내보내기</button>
+      <button class="btn danger" id="clearLog">🗑 기록 지우기</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="log">
+        <thead><tr><th style="width:80px">시간</th><th style="width:230px">메시지</th><th>질문별 답 (확률)</th><th style="width:120px">확신도(최저)</th><th style="width:180px">처리</th><th style="width:70px">판단</th><th style="width:190px">맞았나요?</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tabpane" id="pane-tree">
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn violet" id="addQ">➕ 질문 추가</button>
+      <button class="btn mint" id="addA">➕ 업무(액션) 추가 = 새 직원 입사</button>
+      <span class="hint">노드를 누르면 오른쪽에서 편집해요. 분홍 선 = 최근 편지가 지나간 길, 노란 테두리 = 대표에게 넘어간 지점.</span>
+    </div>
+    <div class="editor-grid">
+      <div class="tree-box"><ul class="tree" id="treeView"></ul><div id="orphans"></div></div>
+      <div class="edit-box" id="editBox"></div>
+    </div>
+  </div>
+
+  <div class="tabpane" id="pane-why">
+    <div class="why" id="whyBox"></div>
+  </div>
+
+  <div class="tabpane" id="pane-set">
+    <div class="set-grid">
+      <div class="card">
+        <h4 class="jua" style="font-size:17px">🤖 로컬 AI</h4>
+        <label class="f">Ollama 주소</label>
+        <input type="url" id="setUrl" value="http://localhost:11434">
+        <label class="f">대표 호출 기준 (확신도가 이 값보다 낮으면 👑 대표에게): <b id="thrVal">0.50</b></label>
+        <input type="range" id="setThr" min="0" max="1" step="0.01" value="0.5" style="width:100%">
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="checkConn">🔄 연결 확인</button>
+          <button class="btn gold" id="toggleDemo">🧪 체험 모드 켜기</button>
+        </div>
+        <p class="hint">체험 모드는 Ollama 없이 화면을 둘러보기 위한 <b>키워드 규칙</b>이에요. 실제 AI 판단이 아니며, 화면에 크게 표시되고 기록에도 “체험” 표시가 붙어요.</p>
+      </div>
+      <div class="card">
+        <h4 class="jua" style="font-size:17px">💾 질문·업무 설정 백업</h4>
+        <p class="hint">설정은 이 브라우저에 자동 저장돼요. 다른 컴퓨터로 옮기거나 백업하려면 JSON으로 내보내세요.</p>
+        <div class="row">
+          <button class="btn mint" id="exportCfg">⬇️ 설정 내보내기</button>
+          <button class="btn" id="importCfgBtn">⬆️ 설정 가져오기</button>
+          <input type="file" id="importCfg" accept="application/json,.json" style="display:none">
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn danger" id="resetCfg">↩️ 처음 설계로 되돌리기</button>
+        </div>
+      </div>
+      <div class="card">
+        <h4 class="jua" style="font-size:17px">📦 보낼 요청 미리보기</h4>
+        <p class="hint">실제로 <code>POST /v1/systemone</code>에 보내는 질문 묶음이에요 (영어 지시문). 크기 제한 64KB.</p>
+        <div class="row"><button class="btn sm" id="previewReq">👀 요청 JSON 보기</button><span class="hint" id="reqSize"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-bg" id="modalBg"><div class="box modal" id="modal"></div></div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   유틸
+   ========================================================= */
+const $=(s,el=document)=>el.querySelector(s);
+const $$=(s,el=document)=>[...el.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pct=(v,d=0)=>(v==null||isNaN(v))?'–':(v*100).toFixed(d)+'%';
+const num=v=>(typeof v==='number'&&isFinite(v))?v:(typeof v==='string'&&v.trim()!==''&&isFinite(+v)?+v:null);
+const rid=p=>p+'_'+Math.random().toString(36).slice(2,7);
+const hashStr=s=>{let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms/(settings.speed||1)));
+const fmtTime=t=>{const d=new Date(t);return d.toTimeString().slice(0,8)};
+const confColor=c=>`hsl(${Math.round(clamp(c,0,1)*120)},72%,48%)`;
+const store={
+  get(k,def){try{const v=localStorage.getItem('sajuco.'+k);return v?JSON.parse(v):def}catch(e){return def}},
+  set(k,v){try{localStorage.setItem('sajuco.'+k,JSON.stringify(v))}catch(e){}}
+};
+function toast(msg,ms=2800){const t=document.createElement('div');t.className='toast';t.innerHTML=msg;$('#toasts').appendChild(t);setTimeout(()=>t.remove(),ms)}
+function download(name,obj){const b=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* =========================================================
+   기본 설계 (질문 → 답 → 다음 질문 / 업무)
+   ========================================================= */
+const TYPE_KO={choice:'선택형',noul:'예/아니오',score:'점수형'};
+const TASK_KO={draft:'✍️ 답장 초안 작성',assign:'📌 담당자 배정',ceo:'👑 대표에게 보고',hold:'🗄️ 보류'};
+const ACCS=['antenna','headset','wizard','cat','bow','glasses','cap','moon','goggles','flower','coin'];
+const N=(kind,id)=>({kind,id});
+
+const DEFAULT_CONFIG={
+  version:1,
+  root:'team',
+  order:['team','refund','refund_reason','billing_issue','report_issue','consult_kind','emotion','tech_urgency','partnership'],
+  questions:{
+    team:{label:'담당 부서',who:'루루',type:'choice',instructions:'Which team should handle this message?',options:[
+      {key:'billing',label:'결제·환불',criteria:'Toss Payments payments and refunds for Saju reports',next:N('question','refund')},
+      {key:'report',label:'리포트',criteria:'Report not received, birth date/time or solar/lunar input corrections, report regeneration',next:N('question','report_issue')},
+      {key:'consulting',label:'상담·추천',criteria:'Questions about Saju interpretation or which report to buy (Lifetime, Wealth, Relationship, Compatibility)',next:N('question','consult_kind')},
+      {key:'technical',label:'기술 문제',criteria:'Website bugs and login problems',next:N('question','tech_urgency')},
+      {key:'other',label:'기타·제휴',criteria:'Partnerships and anything else',next:N('question','partnership')}]},
+    refund:{label:'환불을 요청했나?',who:'토토',type:'noul',yesThreshold:0.7,instructions:'Does the sender explicitly ask for a refund?',options:[
+      {key:'yes',label:'예',next:N('question','refund_reason')},
+      {key:'no',label:'아니오',next:N('question','billing_issue')}]},
+    refund_reason:{label:'환불 사유',who:'미미',type:'choice',instructions:'What is the main reason the sender wants a refund?',options:[
+      {key:'not_received',label:'리포트 못 받음',criteria:'The paid report was never delivered or cannot be found or opened',next:N('action','resend_report')},
+      {key:'wrong_input',label:'출생정보 입력 실수',criteria:'The sender entered a wrong birth date, wrong birth time, or the wrong solar/lunar calendar setting',next:N('action','fix_input')},
+      {key:'unhappy',label:'해석 불만',criteria:'The sender is dissatisfied with the interpretation or content of the report',next:N('action','refund_review')},
+      {key:'double_charge',label:'중복·오결제',criteria:'The sender was charged twice or charged the wrong amount',next:N('action','refund_now')},
+      {key:'changed_mind',label:'단순 변심·기타',criteria:'Simple change of mind or another reason',next:N('action','refund_now')}]},
+    billing_issue:{label:'결제 문의 종류',who:'페페',type:'choice',instructions:'What kind of payment question is this?',options:[
+      {key:'paid_no_report',label:'결제했는데 리포트 없음',criteria:'Payment was completed but the report has not arrived',next:N('action','resend_report')},
+      {key:'payment_failed',label:'결제 실패·오류',criteria:'The payment failed or an error appeared during Toss Payments checkout',next:N('action','pay_guide')},
+      {key:'receipt',label:'영수증·결제수단',criteria:'Receipts, payment history, or payment method questions',next:N('action','pay_guide')}]},
+    report_issue:{label:'리포트 문제 종류',who:'리리',type:'choice',instructions:'What is the problem with the Saju report?',options:[
+      {key:'not_received',label:'못 받음·안 보임',criteria:'The report was not received or cannot be found in the account',next:N('action','resend_report')},
+      {key:'birth_fix',label:'생년월일·시간 수정',criteria:'A wrong birth date or birth time was entered and needs to be corrected',next:N('action','fix_input')},
+      {key:'calendar',label:'양력/음력 혼동',criteria:'Confusion about choosing the solar or lunar calendar (including leap months) for a birthday',next:N('action','calendar_help')},
+      {key:'regenerate',label:'재발급 요청',criteria:'Wants the report regenerated or sent again for another reason',next:N('action','resend_report')}]},
+    consult_kind:{label:'상담 내용',who:'코코',type:'choice',instructions:'What does the sender want from us?',options:[
+      {key:'which_report',label:'어떤 리포트 살지',criteria:'Asking which report to buy or the difference between the Lifetime, Wealth, Relationship and Compatibility reports',next:N('action','recommend')},
+      {key:'interpretation',label:'해석 질문',criteria:'Asking for an explanation of a specific part of their Saju reading',next:N('action','interpret')},
+      {key:'complaint',label:'해석 불만',criteria:'Complaining that the interpretation is wrong, too generic, or disappointing',next:N('question','emotion')}]},
+    emotion:{label:'감정 온도',who:'온도',type:'score',instructions:'How upset is the sender?',options:[
+      {key:'0',label:'차분함',criteria:'Calm',next:N('action','interpret')},
+      {key:'1',label:'실망함',criteria:'Disappointed',next:N('action','care')},
+      {key:'2',label:'매우 화남',criteria:'Very angry',next:N('action','refund_review')}]},
+    tech_urgency:{label:'장애 긴급도',who:'삐삐',type:'score',instructions:'How urgent is this technical problem for our business?',options:[
+      {key:'0',label:'사소함',criteria:'Minor issue with a workaround',next:N('action','bug_ticket')},
+      {key:'1',label:'일부 불편',criteria:'A feature is broken for some users',next:N('action','bug_ticket')},
+      {key:'2',label:'결제·열람 불가',criteria:'Users cannot pay or cannot view their reports at all',next:N('action','bug_urgent')}]},
+    partnership:{label:'제휴 제안인가?',who:'파파',type:'noul',yesThreshold:0.7,instructions:'Is this a business partnership, sponsorship, or collaboration offer?',options:[
+      {key:'yes',label:'예',next:N('action','partner')},
+      {key:'no',label:'아니오',next:N('action','hold')}]}
+  },
+  actionOrder:['refund_now','pay_guide','resend_report','fix_input','calendar_help','recommend','interpret','care','refund_review','bug_ticket','bug_urgent','partner','hold'],
+  actions:{
+    refund_now:{name:'환불 처리',dept:'결제·환불팀',who:'토리',task:'draft',color:'#3fc29d',acc:'coin',assignee:'',
+      template:'{고객명}님, 불편을 드려 죄송합니다. 확인 결과 환불 대상으로 확인되어 토스페이먼츠로 결제 취소를 진행했어요. 카드사에 따라 3~5영업일 안에 반영됩니다.'},
+    pay_guide:{name:'결제 안내',dept:'결제·환불팀',who:'페이',task:'draft',color:'#5bc0de',acc:'headset',assignee:'',
+      template:'{고객명}님, 결제 문의 감사합니다. 결제내역과 영수증은 [마이페이지 > 결제내역]에서 확인할 수 있어요. 결제 오류가 반복되면 다른 카드나 토스페이로 한 번만 다시 시도해 주세요.'},
+    resend_report:{name:'리포트 재발송',dept:'리포트 배송팀',who:'포포',task:'draft',color:'#ff9f43',acc:'cap',assignee:'',
+      template:'{고객명}님, 결제는 정상 확인되었습니다! 리포트를 이메일과 [내 리포트함]으로 다시 보내드렸어요. 10분 안에 안 보이면 스팸함도 확인해 주세요. 그래도 안 되면 바로 환불해 드릴게요.'},
+    fix_input:{name:'출생정보 수정',dept:'만세력팀',who:'만세',task:'draft',color:'#8b6cff',acc:'glasses',assignee:'',
+      template:'{고객명}님, 출생정보 수정 요청 확인했어요. 정확한 생년월일·양력/음력·태어난 시간(모르면 “모름”)을 알려주시면 만세력으로 다시 계산해 무료로 재발급해 드릴게요. 환불보다 빠르고 정확해요!'},
+    calendar_help:{name:'양력·음력 안내',dept:'만세력팀',who:'달님',task:'draft',color:'#4e5fd1',acc:'moon',assignee:'',
+      template:'{고객명}님, 생일을 음력으로 기억하시면 “음력”, 주민등록상 생일이면 보통 “양력”을 고르시면 돼요. 윤달생은 “윤달” 체크! 이미 잘못 넣으셨다면 무료로 다시 뽑아 드릴게요.'},
+    recommend:{name:'리포트 추천',dept:'상담팀',who:'추추',task:'draft',color:'#ff7aa2',acc:'flower',assignee:'',
+      template:'{고객명}님, 돈 흐름이 궁금하면 “재물사주”, 인생 전체 흐름은 “평생사주 정밀 리포트”, 연애·인연은 “인연사주”, 두 분 관계는 “궁합 리포트”를 추천드려요. 고민을 보니 지금은 ○○가 잘 맞을 것 같아요.'},
+    interpret:{name:'해석 상담',dept:'상담팀',who:'도사',task:'draft',color:'#6b4fb8',acc:'wizard',assignee:'',
+      template:'{고객명}님, 리포트를 꼼꼼히 읽어 주셔서 감사해요. 문의하신 대목은 일간과 대운의 흐름을 함께 보면 이해가 쉬워요. 쉬운 말로 다시 풀어 드릴게요.'},
+    care:{name:'불만 케어',dept:'고객경험팀',who:'토닥',task:'draft',color:'#f78fb3',acc:'bow',assignee:'',
+      template:'{고객명}님, 기대에 못 미쳐 정말 죄송합니다. 말씀해 주신 부분을 사주 원국 기준으로 다시 검토해 보완 해석을 보내 드릴게요.'},
+    refund_review:{name:'환불 검토(결재)',dept:'고객경험팀',who:'결재봇',task:'ceo',color:'#e0a100',acc:'antenna',assignee:'대표',
+      template:'[대표 보고] 해석 불만 환불 요청 · {고객명}님 · “{제목}” — 열람 여부와 결제일을 확인했어요. 환불 승인/반려를 결정해 주세요.'},
+    bug_ticket:{name:'버그 접수',dept:'기술팀',who:'버그',task:'assign',color:'#6c7a89',acc:'goggles',assignee:'개발 외주(이슈 트래커)',
+      template:'{고객명}님, 제보 감사합니다! 기술팀에 접수했고 고쳐지면 바로 알려 드릴게요. (내부: 재현 환경·브라우저 기록 첨부)'},
+    bug_urgent:{name:'긴급 장애 대응',dept:'기술팀',who:'삐뽀',task:'assign',color:'#ff5d5d',acc:'headset',assignee:'개발 외주 긴급 호출 + 대표 알림',
+      template:'🚨 결제/열람 장애 의심! 개발 담당 즉시 확인 요청. {고객명}님께는 “확인 중, 30분 내 다시 연락” 1차 안내 발송.'},
+    partner:{name:'제휴 검토',dept:'비서실',who:'제니',task:'ceo',color:'#2bb3a3',acc:'flower',assignee:'대표',
+      template:'[대표 보고] 제휴 제안 · {고객명} · “{제목}” — 제안 요약과 예상 효과를 정리했어요. 진행 여부를 결정해 주세요.'},
+    hold:{name:'보류함',dept:'총무',who:'보류',task:'hold',color:'#a0937d',acc:'cat',assignee:'',
+      template:'분류가 애매하거나 할 일이 없는 메시지라 보류함에 보관했어요. 시간 날 때 대표님이 한 번 봐 주세요.'}
+  }
+};
+
+const EXAMPLES=[
+  {sender:'김민지',subject:'결제했는데 리포트가 안 와요',body:'어젯밤 11시쯤 평생사주 정밀 리포트 결제했어요. 토스로 29,900원 빠져나간 것도 확인했는데 메일함에도 내 리포트함에도 아무것도 없어요. 언제 받을 수 있나요?'},
+  {sender:'박서준',subject:'궁합 리포트 이중결제',body:'궁합 리포트 결제 버튼이 반응이 없어서 한 번 더 눌렀더니 두 번 결제됐어요. 카드 문자도 2건 왔습니다. 한 건은 환불 부탁드려요.'},
+  {sender:'이수연',subject:'엄마 생일을 양력으로 넣었어요',body:'엄마 생신이 음력 3월 7일인데 실수로 양력으로 선택하고 평생사주를 뽑았어요ㅠㅠ 음력으로 수정해서 다시 받을 수 있을까요?'},
+  {sender:'최도윤',subject:'어떤 리포트를 사야 할까요?',body:'요즘 이직이랑 돈 문제로 고민이 많아요. 재물사주랑 평생사주 정밀 리포트 중에 뭘 보는 게 나을까요? 둘이 뭐가 다른지 궁금합니다.'},
+  {sender:'정하은',subject:'인연사주 해석이 너무 실망스러워요',body:'올해 하반기에 귀인이 들어온다더니 완전 반대예요. 누구한테나 할 수 있는 뻔한 말만 써 있어서 솔직히 돈이 아깝다는 생각이 드네요.'},
+  {sender:'강지훈',subject:'결제 페이지가 하얗게 멈춰요',body:'아이폰 사파리에서 재물사주 결제하려고 “다음” 버튼을 누르면 화면이 하얗게 변하고 아무것도 안 떠요. 세 번 해봤는데 계속 그래요. 지금 결제를 아예 못 하고 있어요.'},
+  {sender:'운명TV 제작팀',subject:'[제휴 제안] 유튜브 채널 협업',body:'안녕하세요, 구독자 12만 명의 타로·운세 유튜브 채널 운명TV입니다. 영상 고정댓글에 리포트 할인코드를 넣는 수익쉐어 제휴를 제안드리고 싶습니다.'},
+  {sender:'윤채원',subject:'재물사주 결과가 이상해요',body:'재물사주 결과가 이상한데 태어난 시간을 잘못 넣은 것 같아요. 다시 봐주시거나 환불해주세요',amb:true},
+  {sender:'오세훈',subject:'궁합 리포트 상대방 생일',body:'궁합 리포트 결제했는데 상대방 생일을 음력으로 넣어야 했나요?',amb:true},
+  {sender:'한지민',subject:'로그인 풀리고 리포트가 안 보여요',body:'로그인이 자꾸 풀리더니 그 사이에 결제한 인연사주가 내 리포트함에 안 보여요. 다시 결제해야 하나요? 아니면 환불되나요?',amb:true}
+];
+
+/* =========================================================
+   상태
+   ========================================================= */
+const DEFAULT_SETTINGS={model:'tev1:0.8b',threshold:0.5,baseUrl:'http://localhost:11434',demo:false,speed:1,autoInterval:5};
+let settings=Object.assign({},DEFAULT_SETTINGS,store.get('settings',{}));
+let config=normalizeConfig(store.get('config',null)||clone(DEFAULT_CONFIG));
+let logEntries=store.get('log',[]);
+// 새로고침 시 진행 중이던 편지 정리
+logEntries.forEach(e=>{if(e.status==='working'||e.status==='routing'){e.status='done';e.note='새로고침으로 애니메이션 생략'}});
+let selectedEntryId=null;
+let editorSel={kind:'question',id:config.root};
+let conn={ok:false,checked:false,version:null,msg:''};
+const inbox=[];
+let pipelineBusy=false, pipelinePaused=false;
+
+function saveConfig(){store.set('config',config)}
+function saveSettings(){store.set('settings',settings)}
+function saveLog(){if(logEntries.length>600)logEntries.length=600;store.set('log',logEntries)}
+
+function normalizeConfig(c){
+  if(!c||typeof c!=='object'||!c.questions||!c.actions) return clone(DEFAULT_CONFIG);
+  c.questions=c.questions||{}; c.actions=c.actions||{};
+  c.order=(c.order||[]).filter(id=>c.questions[id]);
+  Object.keys(c.questions).forEach(id=>{if(!c.order.includes(id))c.order.push(id)});
+  c.actionOrder=(c.actionOrder||[]).filter(id=>c.actions[id]);
+  Object.keys(c.actions).forEach(id=>{if(!c.actionOrder.includes(id))c.actionOrder.push(id)});
+  if(!c.questions[c.root]) c.root=c.order[0];
+  for(const id of c.order){
+    const q=c.questions[id];
+    q.label=q.label||id; q.who=q.who||'분석이'; q.type=q.type||'choice'; q.instructions=q.instructions||'';
+    q.options=Array.isArray(q.options)?q.options:[];
+    if(q.type==='noul'){
+      const y=q.options.find(o=>o.key==='yes')||{key:'yes',label:'예',next:null};
+      const n=q.options.find(o=>o.key==='no')||{key:'no',label:'아니오',next:null};
+      q.options=[y,n]; if(q.yesThreshold==null) q.yesThreshold=0.7;
+    }
+    if(q.type==='score') q.options.forEach((o,i)=>o.key=String(i));
+    q.options.forEach(o=>{if(o.next&&!(o.next.kind==='action'?c.actions[o.next.id]:c.questions[o.next.id]))o.next=null});
+  }
+  for(const id of c.actionOrder){
+    const a=c.actions[id];
+    a.name=a.name||'새 업무'; a.dept=a.dept||'신규팀'; a.who=a.who||'새싹'; a.task=a.task||'draft';
+    a.color=a.color||'#8b6cff'; a.acc=a.acc||ACCS[hashStr(id)%ACCS.length]; a.template=a.template||''; a.assignee=a.assignee||'';
+  }
+  return c;
+}
+const qList=()=>config.order.filter(id=>config.questions[id]);
+const aList=()=>config.actionOrder.filter(id=>config.actions[id]);
+function reachable(){
+  const seen=[],st=[config.root];
+  while(st.length){const id=st.shift();if(!id||seen.includes(id)||!config.questions[id])continue;seen.push(id);
+    config.questions[id].options.forEach(o=>{if(o.next&&o.next.kind==='question')st.push(o.next.id)})}
+  return seen;
+}
+
+/* =========================================================
+   요청 만들기 / 검증
+   ========================================================= */
+function buildQuestions(){
+  const out={};
+  for(const id of reachable()){
+    const q=config.questions[id];
+    if(q.type==='choice') out[id]={type:'choice',instructions:q.instructions,criteria:Object.fromEntries(q.options.map(o=>[o.key,o.criteria||o.key]))};
+    else if(q.type==='noul') out[id]={type:'noul',instructions:q.instructions};
+    else out[id]={type:'score',instructions:q.instructions,criteria:q.options.map(o=>o.criteria||o.label)};
+  }
+  return out;
+}
+function buildRequest(msg){return {model:settings.model,state:{sender:msg.sender,subject:msg.subject,body:msg.body},questions:buildQuestions()}}
+function validateConfig(){
+  const p=[];const qs=qList();
+  if(qs.length<1)p.push('질문이 최소 1개 필요해요.');
+  if(reachable().length>64)p.push('한 번에 보낼 수 있는 질문은 최대 64개예요.');
+  for(const id of qs){const q=config.questions[id];
+    if(!q.instructions.trim())p.push(`“${q.label}”: 영어 지시문이 비었어요.`);
+    if(q.type!=='noul'&&(q.options.length<2||q.options.length>26))p.push(`“${q.label}”: 보기는 2~26개여야 해요.`);
+    if(q.type==='choice'){const ks=q.options.map(o=>o.key);
+      if(new Set(ks).size!==ks.length)p.push(`“${q.label}”: 영문 키가 겹쳐요.`);
+      ks.forEach(k=>{if(!/^[A-Za-z][A-Za-z0-9_]*$/.test(k))p.push(`“${q.label}”: 키 “${k}”는 영문/숫자/_만 쓸 수 있어요.`)});
+      q.options.forEach(o=>{if(!String(o.criteria||'').trim())p.push(`“${q.label}” → “${o.label}”: 영어 기준이 비었어요.`)})}
+  }
+  return p;
+}
+
+/* =========================================================
+   답 해석 + 트리 따라가기
+   ========================================================= */
+function argmax(obj){let bk=null,bv=-1;for(const k in obj){const v=num(obj[k]);if(v!=null&&v>bv){bv=v;bk=k}}return bk}
+function interpret(qid,a){
+  const q=config.questions[qid]; if(!a||typeof a!=='object') return null;
+  if(q.type==='choice'){
+    const probs={};q.options.forEach(o=>probs[o.key]=num(a.probabilities?.[o.key])??0);
+    let key=a.choice!=null?String(a.choice):argmax(probs);
+    const conf=num(a.confidence)??probs[key]??0;
+    return {key,probs,conf};
+  }
+  if(q.type==='noul'){
+    const p=num(a.noul); if(p==null) return null;
+    const key=p>=(q.yesThreshold??0.7)?'yes':'no';
+    const conf=num(a.confidence)??Math.abs(p-0.5)*2;
+    return {key,probs:{yes:p,no:1-p},conf,p,confDerived:num(a.confidence)==null};
+  }
+  // score
+  const probs={};q.options.forEach((o,i)=>probs[String(i)]=num(a.probabilities?.[String(i)])??0);
+  let s=num(a.score); if(s==null) s=q.options.reduce((acc,o,i)=>acc+i*probs[String(i)],0);
+  const idx=clamp(Math.round(s),0,q.options.length-1);
+  const conf=num(a.confidence)??Math.max(...Object.values(probs));
+  return {key:String(idx),probs,conf,score:s};
+}
+function walkTree(answers){
+  const path=[];let qid=config.root;const visited=new Set();
+  while(true){
+    if(!qid||!config.questions[qid]) return {path,outcome:{kind:'ceo',reason:'질문 흐름이 끊겼어요'}};
+    if(visited.has(qid)) return {path,outcome:{kind:'ceo',reason:'질문 흐름이 순환해요'}};
+    visited.add(qid);
+    const q=config.questions[qid]; const r=interpret(qid,answers?.[qid]);
+    if(!r) return {path,outcome:{kind:'ceo',reason:`AI 응답에 “${q.label}” 답이 없어요`}};
+    const min=q.minConf!=null&&q.minConf!==''?+q.minConf:settings.threshold;
+    const opt=q.options.find(o=>o.key===r.key);
+    const step={qid,label:q.label,type:q.type,who:q.who,key:r.key,keyLabel:opt?opt.label:r.key,conf:r.conf,min,score:r.score,p:r.p,
+      yesThreshold:q.type==='noul'?q.yesThreshold:undefined,confDerived:!!r.confDerived,
+      opts:q.options.map(o=>({key:o.key,label:o.label,prob:r.probs[o.key]??0})),low:r.conf<min,next:opt?.next||null};
+    path.push(step);
+    if(step.low) return {path,outcome:{kind:'ceo',reason:`“${q.label}” 확신도 ${r.conf.toFixed(2)} < 기준 ${min.toFixed(2)}`}};
+    if(!opt) return {path,outcome:{kind:'ceo',reason:`“${r.key}”라는 보기가 없어요`}};
+    if(!opt.next) return {path,outcome:{kind:'ceo',reason:`“${q.label} → ${opt.label}” 다음 단계가 정해지지 않았어요`}};
+    if(opt.next.kind==='action'){
+      if(!config.actions[opt.next.id]) return {path,outcome:{kind:'ceo',reason:'연결된 업무가 삭제됐어요'}};
+      return {path,outcome:{kind:'action',id:opt.next.id}};
+    }
+    qid=opt.next.id;
+  }
+}
+
+/* =========================================================
+   로컬 AI 호출 (Ollama /v1/systemone)
+   ========================================================= */
+function cmpVer(a,b){const pa=String(a).split(/[.-]/).map(x=>parseInt(x)||0),pb=String(b).split('.').map(x=>parseInt(x)||0);for(let i=0;i<3;i++){if((pa[i]||0)!==(pb[i]||0))return (pa[i]||0)-(pb[i]||0)}return 0}
+async function checkConnection(silent){
+  const pill=$('#connPill'),txt=$('#connText');
+  pill.className='pill';txt.textContent='연결 확인 중…';
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),3000);
+  try{
+    const r=await fetch(settings.baseUrl.replace(/\/$/,'')+'/api/version',{signal:ctl.signal});
+    const j=await r.json();conn={ok:true,checked:true,version:j.version};
+    if(j.version&&cmpVer(j.version,'0.35.0')<0){pill.className='pill warn';txt.textContent=`Ollama ${j.version} · 0.35 이상 필요`;conn.old=true}
+    else{pill.className='pill ok';txt.textContent=`Ollama ${j.version||''} 연결됨`}
+    // 모델 설치 확인 (참고용)
+    try{const t=await (await fetch(settings.baseUrl.replace(/\/$/,'')+'/api/tags')).json();
+      const names=(t.models||[]).map(m=>m.name||m.model);const want=settings.model.includes(':')?settings.model:settings.model+':latest';
+      if(names.length&&!names.includes(want)&&!names.includes(settings.model)){pill.className='pill warn';txt.textContent=`${settings.model} 모델 없음 · ollama pull 필요`;conn.noModel=true}
+    }catch(e){}
+    $('#connBanner').classList.remove('show');
+  }catch(e){
+    conn={ok:false,checked:true,msg:String(e&&e.message||e)};
+    pill.className='pill bad';txt.textContent='Ollama 연결 안 됨';
+    if(!settings.demo&&!silent)$('#connBanner').classList.add('show');
+  }finally{clearTimeout(tm)}
+}
+async function decideReal(msg){
+  const req=buildRequest(msg);const body=JSON.stringify(req);
+  if(new Blob([body]).size>65536) throw {kind:'limit',msg:'요청이 64KB를 넘어요. 질문/기준 문장을 줄여 주세요.'};
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),90000);
+  const t0=performance.now();let res;
+  try{res=await fetch(settings.baseUrl.replace(/\/$/,'')+'/v1/systemone',{method:'POST',headers:{'Content-Type':'application/json'},body,signal:ctl.signal})}
+  catch(e){clearTimeout(tm);throw {kind:'network',msg:e.name==='AbortError'?'응답 시간이 초과됐어요 (90초).':String(e.message||e)}}
+  clearTimeout(tm);
+  if(!res.ok){let t='';try{t=await res.text()}catch(e){};throw {kind:'http',status:res.status,msg:t.slice(0,400)}}
+  let data;try{data=await res.json()}catch(e){throw {kind:'parse',msg:'응답이 JSON이 아니에요.'}}
+  const ms=performance.now()-t0;
+  if(!data||!data.answers) throw {kind:'parse',msg:'응답에 answers가 없어요: '+JSON.stringify(data).slice(0,200)};
+  return {answers:data.answers,usage:data.usage||null,model:data.model||settings.model,ms,demo:false,request:req};
+}
+
+/* ---- 체험 모드: 키워드 규칙 (실제 AI 아님) ---- */
+const DEMO_KW={
+  team:{billing:['결제','환불','토스','이중','두 번','카드','영수증','빠져나','2건'],report:['안 와','리포트함','못 받','안 보','다시 받','태어난 시간','생년월일','음력','양력','윤달','잘못 넣','수정'],consulting:['뭘','어떤 리포트','추천','차이','해석','귀인','뻔한','실망','다른지'],technical:['로그인','버그','오류','하얗게','사파리','크롬','안 떠','에러','페이지'],other:['제휴','협업','제안','유튜브','광고','파트너']},
+  refund_reason:{not_received:['안 와','못 받','안 보','리포트함'],wrong_input:['잘못 넣','태어난 시간','음력','양력','생년월일'],unhappy:['실망','이상','뻔한','아깝','반대'],double_charge:['두 번','이중','2건'],changed_mind:['단순','변심']},
+  billing_issue:{paid_no_report:['안 와','못 받','안 보','리포트함'],payment_failed:['실패','오류','안 돼','멈춰','하얗게'],receipt:['영수증','내역','수단','두 번','이중']},
+  report_issue:{not_received:['안 와','못 받','안 보','리포트함'],birth_fix:['태어난 시간','생년월일','잘못 넣','시간을'],calendar:['음력','양력','윤달'],regenerate:['다시 받','재발급','다시 뽑','다시 봐']},
+  consult_kind:{which_report:['뭘','어떤','추천','차이','중에','다른지'],interpretation:['의미','무슨 뜻','해석','설명'],complaint:['실망','뻔한','반대','아깝','틀']},
+  emotion:{'0':[],'1':['실망','아쉽','별로','뻔한'],'2':['화나','최악','사기','신고','아깝','어이없']},
+  tech_urgency:{'0':['가끔','불편'],'1':['로그인','안 보','느려','풀리'],'2':['결제를 아예','결제 못','하얗게','안 떠','못 하고']}
+};
+const DEMO_NOUL={refund:['환불'],partnership:['제휴','협업','파트너','광고 제안','수익쉐어']};
+function demoDecide(msg){
+  const text=(msg.subject+' '+msg.body);const hit=ws=>ws.reduce((n,w)=>n+(text.includes(w)?1:0),0);
+  const t0=performance.now();const answers={};
+  for(const qid of reachable()){
+    const q=config.questions[qid];
+    if(q.type==='noul'){
+      const ws=DEMO_NOUL[qid]||q.label.replace(/[?？]/g,'').split(/\s+/).filter(w=>w.length>1);
+      const h=hit(ws);answers[qid]={type:'noul',noul:+(h?clamp(0.62+0.17*h,0,0.97):0.07).toFixed(3)};continue;
+    }
+    const kw=DEMO_KW[qid]||{};
+    const raw=q.options.map(o=>0.15+hit(kw[o.key]||o.label.split(/[\s·\/]+/).filter(w=>w.length>1)));
+    const ex=raw.map(v=>Math.exp(v*2.1));const sum=ex.reduce((a,b)=>a+b,0);
+    const probs=ex.map(v=>v/sum);const sorted=[...probs].sort((a,b)=>b-a);
+    const conf=+clamp((sorted[0]-(sorted[1]||0))*1.5,0,0.99).toFixed(3);
+    if(q.type==='choice'){const P={};q.options.forEach((o,i)=>P[o.key]=+probs[i].toFixed(3));answers[qid]={type:'choice',choice:q.options[probs.indexOf(sorted[0])].key,probabilities:P,confidence:conf}}
+    else{const P={},lg={};q.options.forEach((o,i)=>{P[String(i)]=+probs[i].toFixed(3);lg[String(i)]=o.criteria});
+      answers[qid]={type:'score',score:+probs.reduce((a,p,i)=>a+p*i,0).toFixed(3),legend:lg,probabilities:P,confidence:conf}}
+  }
+  return {answers,usage:null,model:'체험 모드(키워드 규칙)',ms:performance.now()-t0,demo:true,request:buildRequest(msg)};
+}
+
+/* =========================================================
+   캔버스: 레이아웃
+   ========================================================= */
+const W=480;let H=260,S=2,DPR=1,ZF=1,T=0;
+const cv=$('#office'),ctx=cv.getContext('2d');
+const bg=document.createElement('canvas'),bctx=bg.getContext('2d');
+let LY={qPos:{},aPos:{},ceo:{x:419,y:78},mail:{x:30,y:96},laneY:144,door:{x:4,y:144},ceoRoom:{}};
+const OUT='#2b2340';
+
+function computeLayout(){
+  const qs=qList();const qc=clamp(qs.length,1,5);const qRows=Math.max(1,Math.ceil(qs.length/qc));
+  const qx0=208-(qc-1)*28;const qPos={};
+  qs.forEach((id,i)=>{qPos[id]={x:qx0+(i%qc)*56,y:66+Math.floor(i/qc)*48}});
+  const qBottom=66+(qRows-1)*48+18;
+  const ceoRoom={x0:360,y0:34,x1:478,y1:Math.max(122,qBottom)};
+  const top=Math.max(qBottom,ceoRoom.y1)+42;
+  const as=aList();const ac=clamp(as.length,1,7);const aRows=Math.max(1,Math.ceil(as.length/ac));
+  const ax0=240-(ac-1)*32;const aPos={};
+  as.forEach((id,i)=>{aPos[id]={x:ax0+(i%ac)*64,y:top+Math.floor(i/ac)*62}});
+  H=top+(aRows-1)*62+30;
+  LY={qPos,aPos,ceo:{x:419,y:80},mail:{x:30,y:96},laneY:top-24,door:{x:3,y:top-24},ceoRoom,qx0,qc,qBottom,top};
+}
+// 각 장소: 서는 자리(spot)와 통로 x
+function placeQ(id){const p=LY.qPos[id];return {spot:{x:p.x,y:p.y+14},gapX:p.x+28,head:{x:p.x-2,y:p.y-26}}}
+function placeA(id){const p=LY.aPos[id];return {spot:{x:p.x-3,y:p.y+1},gapX:p.x+32}}
+function placeCEO(){return {spot:{x:LY.ceo.x,y:LY.ceo.y+17},gapX:LY.ceo.x}}
+function route(from,to){
+  const ly=LY.laneY;
+  return [{x:from.gapX,y:from.spot.y},{x:from.gapX,y:ly},{x:to.gapX,y:ly},{x:to.gapX,y:to.spot.y},{x:to.spot.x,y:to.spot.y}];
+}
+
+function resize(){
+  const holder=$('#holder');const cssW=holder.clientWidth;DPR=window.devicePixelRatio||1;
+  S=cssW*DPR/W;ZF=clamp(cssW/880,0.8,1.25);
+  cv.width=Math.round(W*S);cv.height=Math.round(H*S);cv.style.height=(cv.height/DPR)+'px';
+}
+
+/* ---- 배경(정적) ---- */
+function renderBG(){
+  bg.width=W;bg.height=H;const b=bctx;const B=(x,y,w,h,c)=>{b.fillStyle=c;b.fillRect(x,y,w,h)};
+  // 나무 바닥
+  for(let y=34;y<H;y+=6){const row=(y/6)|0;B(0,y,W,6,row%2?'#e9c9a0':'#e4c296');
+    for(let x=((row*23)%46)-46;x<W;x+=46)B(x,y,1,6,'#cfa877');B(0,y+5,W,1,'#d8b487')}
+  // 벽
+  B(0,0,W,34,'#a9b5ea');for(let x=0;x<W;x+=8)B(x,0,4,26,'#b5c0f0');B(0,24,W,6,'#8e9ad8');B(0,29,W,5,'#6b4f3a');B(0,29,W,1,'#8d6c50');
+  // 창문
+  for(const wx of [60,300]){B(wx-1,3,36,21,OUT);B(wx,4,34,19,'#fff');B(wx+1,5,32,17,'#8fd3ff');B(wx+1,15,32,7,'#b8e6ff');
+    B(wx+5,8,8,3,'#fff');B(wx+7,7,4,1,'#fff');B(wx+20,12,7,2,'#fff');B(wx+17,5,1,17,'#fff');B(wx+1,13,32,1,'#fff')}
+  // 간판 판
+  B(185,4,110,21,OUT);B(186,5,108,19,'#4a2f62');B(187,6,106,17,'#5b3d7a');
+  for(let i=0;i<9;i++)B(190+i*12,7+(i%2)*13,1,1,'#ffe27a');
+  // 만세력 포스터
+  B(138,5,26,21,OUT);B(139,6,24,19,'#fff7e8');B(139,6,24,5,'#e04b4b');for(let r=0;r<3;r++)for(let c=0;c<5;c++)B(141+c*4,13+r*4,3,3,(r*5+c)%7===3?'#ffd6d6':'#e8dcc8');
+  // 책장
+  B(6,20,30,26,OUT);B(7,21,28,24,'#8a5a3c');for(let r=0;r<3;r++){B(8,23+r*8,26,6,'#5e3a25');const cs=['#ff7aa2','#5b9dff','#3fc29d','#f4b63f','#8b6cff','#ff9f43'];for(let i=0;i<6;i++)B(9+i*4,23+r*8+((i+r)%3===0?1:0),3,6-((i+r)%3===0?1:0),cs[(i+r)%6])}
+  // 화분들
+  const plant=(x,y)=>{B(x-4,y-3,8,6,OUT);B(x-3,y-2,6,5,'#c7683e');B(x-6,y-12,12,9,'#2f9e6a');B(x-4,y-14,8,4,'#3fc29d');B(x-7,y-9,3,4,'#3fc29d');B(x+4,y-9,3,4,'#2f9e6a')};
+  plant(48,46);plant(352,48);plant(10,H-8);plant(W-10,H-8);
+  // 정수기
+  B(340,34,10,18,OUT);B(341,35,8,16,'#e8eef8');B(342,36,6,6,'#7cc7ff');B(343,44,4,2,'#5b6b8a');
+  // 복도 러너 + 문
+  B(0,LY.laneY-6,W,12,'#d6bb93');B(0,LY.laneY-6,W,1,'#c2a275');B(0,LY.laneY+5,W,1,'#c2a275');
+  for(let x=4;x<W;x+=12)B(x,LY.laneY-1,5,1,'#e8d2ad');
+  B(0,LY.laneY-20,5,26,OUT);B(0,LY.laneY-19,4,24,'#8a5a3c');B(2,LY.laneY-8,1,2,'#f4b63f');
+  // 분석실 러그 (사주 별자리 러그)
+  const rx0=LY.qx0-34,rx1=LY.qx0+(LY.qc-1)*56+34,ry0=40,ry1=LY.qBottom+4;
+  B(rx0-1,ry0-1,rx1-rx0+2,ry1-ry0+2,OUT);B(rx0,ry0,rx1-rx0,ry1-ry0,'#f4b63f');B(rx0+2,ry0+2,rx1-rx0-4,ry1-ry0-4,'#5e4b9e');B(rx0+3,ry0+3,rx1-rx0-6,ry1-ry0-6,'#6a57ad');
+  for(let i=0;i<40;i++){const h=hashStr('star'+i);B(rx0+4+h%(rx1-rx0-8),ry0+4+(h>>8)%(ry1-ry0-8),1,1,i%3?'#cfc3ff':'#ffe27a')}
+  // 대표실
+  const R0=LY.ceoRoom;
+  B(R0.x0,R0.y0,R0.x1-R0.x0,R0.y1-R0.y0,'#f2e3cf');
+  B(R0.x0+8,R0.y0+8,R0.x1-R0.x0-14,R0.y1-R0.y0-14,'#f4b63f');B(R0.x0+10,R0.y0+10,R0.x1-R0.x0-18,R0.y1-R0.y0-18,'#c9374a');B(R0.x0+12,R0.y0+12,R0.x1-R0.x0-22,R0.y1-R0.y0-22,'#d8475a');
+  for(let x=R0.x0+16;x<R0.x1-12;x+=10)B(x,R0.y0+14,2,2,'#f7c9a6');
+  // 유리 칸막이 (아래쪽에 출입구)
+  B(R0.x0-2,R0.y0,3,R0.y1-R0.y0-22,'#9fd6ff');B(R0.x0-2,R0.y0,1,R0.y1-R0.y0-22,'#e6f6ff');B(R0.x0-3,R0.y1-22,5,2,OUT);
+  B(R0.x0,R0.y1-1,R0.x1-R0.x0-40,3,'#9fd6ff');B(R0.x0,R0.y1-1,R0.x1-R0.x0-40,1,'#e6f6ff');
+  // 대표실 액자 + 트로피
+  B(452,6,20,16,OUT);B(453,7,18,14,'#f4b63f');B(455,9,14,10,'#7fb6ff');B(458,14,8,5,'#3fc29d');
+  B(466,46,8,10,OUT);B(467,47,6,5,'#f4b63f');B(469,52,2,3,'#d29a1e');B(467,55,6,1,'#8a5a3c');
+}
+
+/* =========================================================
+   캐릭터 / 월드
+   ========================================================= */
+const HAIRS=['#3b2a20','#6b3e26','#1f1d2b','#c47a3c','#e8c25b','#9b5de5','#f28bb6','#5a6b8c'];
+const SKINS=['#ffe0c7','#f9d2b0','#f1c29a','#e6b08a'];
+const STYLES=['short','bob','spiky','bun','long'];
+const chars={};let particles=[];let flying=[];const floorLetters=[];
+
+function makeLook(id,shirt,acc){
+  const h=hashStr(id);
+  return {hair:HAIRS[h%HAIRS.length],skin:SKINS[(h>>4)%SKINS.length],style:STYLES[(h>>8)%STYLES.length],shirt,pants:'#3d3a5c',acc};
+}
+function shade(hex,amt=-30){const n=parseInt(hex.slice(1),16);let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt;return '#'+[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,'0')).join('')}
+function newChar(key,kind,refId,x,y){
+  return {key,kind,refId,x,y,path:[],onArrive:null,state:'idle',stateUntil:0,stateT:0,dir:'down',carry:false,bubble:null,emote:null,
+    seed:(hashStr(key)%1000)/1000,queue:[],busy:false,alpha:1,lastWork:performance.now(),nextEmote:performance.now()+4000+Math.random()*9000};
+}
+function charHome(c){
+  if(c.kind==='q')return {x:LY.qPos[c.refId].x-2,y:LY.qPos[c.refId].y};
+  if(c.kind==='a')return {x:LY.aPos[c.refId].x-3,y:LY.aPos[c.refId].y+1};
+  return {x:LY.ceo.x,y:LY.ceo.y+1};
+}
+function charLook(c){
+  if(c.kind==='ceo')return {hair:'#1f1d2b',skin:'#ffe0c7',style:'short',shirt:'#2b2340',pants:'#2b2340',acc:'crown',tie:'#ff5d5d'};
+  if(c.kind==='q'){const q=config.questions[c.refId];const pal=['#b8a6ff','#9fb6ff','#c69cf0','#a6c8ff','#d7a6f0'];return makeLook(c.key,pal[hashStr(c.refId)%pal.length],['antenna','glasses','antenna','cat','bow'][hashStr(c.refId+'a')%5])}
+  const a=config.actions[c.refId];return makeLook(c.key,a.color,a.acc);
+}
+function syncWorld(spawnWalk){
+  computeLayout();resize();renderBG();
+  const want=new Set(['ceo']);
+  if(!chars.ceo){const h={x:LY.ceo.x,y:LY.ceo.y+1};chars.ceo=newChar('ceo','ceo','ceo',h.x,h.y)}
+  for(const id of qList()){const k='q:'+id;want.add(k);if(!chars[k]){const c=newChar(k,'q',id,0,0);chars[k]=c;placeNew(c,spawnWalk)}}
+  for(const id of aList()){const k='a:'+id;want.add(k);if(!chars[k]){const c=newChar(k,'a',id,0,0);chars[k]=c;placeNew(c,spawnWalk)}}
+  for(const k of Object.keys(chars)){
+    const c=chars[k];
+    if(!want.has(k)){if(!c.leaving){c.leaving=true;c.alphaFade=true;sparkle(c.x,c.y-10,10)}continue}
+    c.look=charLook(c);
+    const h=charHome(c);
+    if(!c.busy&&!c.path.length&&(Math.abs(c.x-h.x)>0.5||Math.abs(c.y-h.y)>0.5)){
+      if(spawnWalk)walkTo(c,[{x:c.x,y:LY.laneY},{x:h.x+ (c.kind==='a'?35:30),y:LY.laneY},{x:h.x+(c.kind==='a'?35:30),y:h.y},h]);else{c.x=h.x;c.y=h.y}
+    }
+  }
+}
+function placeNew(c,spawnWalk){
+  c.look=charLook(c);const h=charHome(c);
+  if(spawnWalk){c.x=LY.door.x+4;c.y=LY.door.y;const gx=h.x+(c.kind==='a'?35:30);
+    walkTo(c,[{x:gx,y:LY.laneY},{x:gx,y:h.y},h]).then(()=>{happy(c,1200);sparkle(c.x,c.y-12,16);bubble(c,c.kind==='a'?'🎉 입사했어요! 잘 부탁드려요':'🎉 새 질문 담당이에요!',2600)});}
+  else{c.x=h.x;c.y=h.y}
+}
+
+/* ---- 애니메이션 헬퍼 ---- */
+function walkTo(c,pts){return new Promise(res=>{c.path=pts.map(p=>({x:p.x,y:p.y}));c.onArrive=res;c.state='walk'})}
+function bubble(c,text,ms=2500,kind='',typing=false){c.bubble={text,t0:T||performance.now(),until:ms===Infinity?Infinity:(T||performance.now())+ms/(settings.speed||1),kind,typing}}
+function happy(c,ms=900){c.state='happy';c.stateT=T;c.stateUntil=T+ms/(settings.speed||1)}
+function sparkle(x,y,n=14,cols=['#ffe27a','#fff','#ff9ec0','#9fe7ff']){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=10+Math.random()*30;particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-12,life:0,max:600+Math.random()*500,c:cols[i%cols.length],t:'s'})}}
+function hearts(x,y,n=3){for(let i=0;i<n;i++)particles.push({x:x+(Math.random()*8-4),y,vx:Math.random()*6-3,vy:-14-Math.random()*8,life:0,max:1100,c:'#ff5d8f',t:'h'})}
+function newLetter(x,y){const l={x,y,vis:true,id:rid('l')};floorLetters.push(l);return l}
+function removeLetter(l){l.vis=false;const i=floorLetters.indexOf(l);if(i>=0)floorLetters.splice(i,1)}
+function flyLetter(l,to,dur){
+  return new Promise(res=>{const d=Math.hypot(to.x-l.x,to.y-l.y);flying.push({l,x0:l.x,y0:l.y,x1:to.x,y1:to.y,t0:T,dur:(dur||(260+d*5.5))/(settings.speed||1),res,h:Math.min(26,8+d*0.18)})});
+}
+
+/* ---- 갱신 ---- */
+function update(dt){
+  const spd=settings.speed||1;
+  for(const k in chars){const c=chars[k];
+    if(c.path.length){
+      const p=c.path[0];const dx=p.x-c.x,dy=p.y-c.y;const d=Math.hypot(dx,dy);const step=46*spd*dt;
+      if(Math.abs(dx)>Math.abs(dy))c.dir=dx>0?'right':'left';else if(d>0.01)c.dir=dy>0?'down':'up';
+      if(d<=step){c.x=p.x;c.y=p.y;c.path.shift();if(!c.path.length){c.state='idle';c.dir='down';const f=c.onArrive;c.onArrive=null;f&&f()}}
+      else{c.x+=dx/d*step;c.y+=dy/d*step}
+    }
+    if(c.state==='happy'&&T>c.stateUntil)c.state='idle';
+    if(c.alphaFade){c.alpha-=dt*1.2;if(c.alpha<=0)delete chars[k]}
+    if(c.bubble&&T>c.bubble.until)c.bubble=null;
+    if(c.emote&&T>c.emote.until)c.emote=null;
+    // 쉬는 중 소소한 몸짓
+    if(!c.busy&&!c.path.length&&c.state==='idle'&&!c.bubble&&T>c.nextEmote&&c.kind!=='ceo'){
+      const idle=T-c.lastWork>45000;const pool=idle?['💤','☕','♪','💤']:['☕','♪','✨','📖','🍀'];
+      c.emote={t:pool[Math.floor(Math.random()*pool.length)],until:T+2200};c.nextEmote=T+7000+Math.random()*14000;
+    }
+  }
+  for(let i=flying.length-1;i>=0;i--){const f=flying[i];const k=clamp((T-f.t0)/f.dur,0,1);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    f.l.x=f.x0+(f.x1-f.x0)*e;f.l.y=f.y0+(f.y1-f.y0)*e-Math.sin(Math.PI*k)*f.h;
+    if(Math.random()<0.5)particles.push({x:f.l.x+3,y:f.l.y+2,vx:0,vy:0,life:0,max:350,c:'#fff3b0',t:'d'});
+    if(k>=1){flying.splice(i,1);f.res()}}
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life+=dt*1000;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.t==='s')p.vy+=40*dt;if(p.life>p.max)particles.splice(i,1)}
+}
+
+/* ---- 그리기 ---- */
+function R(x,y,w,h,c){ctx.fillStyle=c;const X=Math.round(x*S),Y=Math.round(y*S);ctx.fillRect(X,Y,Math.round((x+w)*S)-X,Math.round((y+h)*S)-Y)}
+function drawLetter(x,y,glow){x=Math.round(x);y=Math.round(y);
+  if(glow){ctx.globalAlpha=0.35+0.25*Math.sin(T/150);R(x-2,y-2,11,9,'#fff3b0');ctx.globalAlpha=1}
+  R(x,y,7,5,OUT);R(x+1,y+1,5,3,'#fffdf5');R(x+1,y+1,1,1,'#d9cdb8');R(x+2,y+2,1,1,'#d9cdb8');R(x+4,y+2,1,1,'#d9cdb8');R(x+5,y+1,1,1,'#d9cdb8');R(x+3,y+2,1,1,'#ff5d5d')}
+function drawChar(c){
+  if(c.alpha<=0)return;ctx.globalAlpha=clamp(c.alpha,0,1);
+  const L=c.look;const x=Math.round(c.x),y=Math.round(c.y);const walking=c.path.length>0;
+  const f=walking?Math.floor(T/115)%4:0;
+  let bob=walking?(f%2?-1:0):(Math.sin(T/420+c.seed*6)>0.55?-1:0);
+  let jump=0;if(c.state==='happy')jump=-Math.round(Math.abs(Math.sin((T-c.stateT)/105))*5);
+  const Y=y+jump;const sh=shade(L.shirt,-35);
+  R(x-4,y-1,9,2,'rgba(40,20,40,.2)');
+  // 다리
+  const la=f===1?-1:0,lb=f===3?-1:0;
+  R(x-3,Y-4+la,2,4,L.pants);R(x+1,Y-4+lb,2,4,L.pants);R(x-3,Y-1+la,2,1,'#2a2030');R(x+1,Y-1+lb,2,1,'#2a2030');
+  const by=Y-10+bob;
+  // 몸통
+  R(x-5,by-1,10,8,OUT);R(x-4,by,8,6,L.shirt);R(x-4,by+5,8,1,sh);R(x-1,by,2,1,'#fff');
+  if(L.tie)R(x,by+1,1,3,L.tie);
+  // 팔
+  if(c.state==='work'){const t2=Math.floor(T/95)%2;R(x-5,by+1,1,3,sh);R(x+4,by+1,1,3,sh);R(x-3+t2,by+4,2,1,L.skin);R(x+1-t2,by+4,2,1,L.skin)}
+  else if(c.carry){R(x-5,by-4,1,5,sh);R(x+4,by-4,1,5,sh);R(x-5,by-5,1,1,L.skin);R(x+4,by-5,1,1,L.skin)}
+  else if(c.state==='happy'){R(x-6,by-3,1,4,sh);R(x+5,by-3,1,4,sh);R(x-6,by-4,1,1,L.skin);R(x+5,by-4,1,1,L.skin)}
+  else{const s1=walking&&f===1?1:0,s2=walking&&f===3?1:0;R(x-5,by+1+s1,1,4,sh);R(x+4,by+1+s2,1,4,sh);R(x-5,by+5+s1,1,1,L.skin);R(x+4,by+5+s2,1,1,L.skin)}
+  // 머리
+  const hx=x-5,hy=by-9;
+  R(hx-1,hy,12,9,OUT);R(hx,hy-1,10,11,OUT);R(hx,hy,10,9,L.skin);
+  drawHair(L,hx,hy,c.dir==='up');
+  if(c.dir!=='up'){
+    const ex=c.dir==='left'?-1:c.dir==='right'?1:0;const blink=((T+c.seed*3000)%3900)<130;
+    if(c.state==='happy'||blink){R(hx+2+ex,hy+4,2,1,OUT);R(hx+6+ex,hy+4,2,1,OUT)}
+    else{R(hx+2+ex,hy+3,2,2,OUT);R(hx+6+ex,hy+3,2,2,OUT);R(hx+2+ex,hy+3,1,1,'#fff');R(hx+6+ex,hy+3,1,1,'#fff')}
+    R(hx+1,hy+6,2,1,'#ffadc0');R(hx+7,hy+6,2,1,'#ffadc0');
+    if(c.state==='happy'){R(hx+4+ex,hy+6,2,1,'#c0485a');R(hx+4+ex,hy+7,2,1,'#ff8fa3')}
+    else if(c.state==='work')R(hx+4+ex,hy+7,2,1,'#b0566a');
+    else R(hx+4+ex,hy+6,2,1,'#d0707f');
+  }
+  drawAcc(L.acc,x,hx,hy);
+  if(c.carry)drawLetter(x-3,hy-9-(walking?(f%2):0),true);
+  ctx.globalAlpha=1;
+}
+function drawHair(L,hx,hy,back){
+  const h=L.hair;
+  if(back){R(hx,hy,10,8,h);if(L.style==='long'||L.style==='bob')R(hx-1,hy+1,12,(L.style==='long'?9:7),h);if(L.style==='bun')R(hx+3,hy-3,4,3,h);return}
+  R(hx,hy,10,3,h);
+  switch(L.style){
+    case 'short':R(hx,hy+3,1,2,h);R(hx+9,hy+3,1,2,h);R(hx+2,hy+3,3,1,h);break;
+    case 'bob':R(hx-1,hy+1,2,7,h);R(hx+9,hy+1,2,7,h);R(hx+1,hy+3,8,1,h);break;
+    case 'spiky':R(hx+1,hy-2,2,2,h);R(hx+4,hy-3,2,3,h);R(hx+7,hy-2,2,2,h);R(hx,hy+3,1,2,h);R(hx+9,hy+3,1,2,h);break;
+    case 'bun':R(hx+3,hy-4,4,4,h);R(hx,hy+3,1,3,h);R(hx+9,hy+3,1,3,h);break;
+    case 'long':R(hx-1,hy+1,2,10,h);R(hx+9,hy+1,2,10,h);R(hx+5,hy+3,3,1,h);break;
+  }
+}
+function drawAcc(a,x,hx,hy){
+  switch(a){
+    case 'antenna':{const on=Math.floor(T/500)%2;R(x,hy-5,1,5,'#8a8fa8');R(x-1,hy-7,3,2,on?'#7dff9a':'#3fc29d');break}
+    case 'headset':R(hx-1,hy+2,1,4,'#333');R(hx+10,hy+2,1,4,'#333');R(hx,hy-1,10,1,'#333');R(hx-1,hy+6,4,1,'#333');break;
+    case 'wizard':R(hx-1,hy-1,12,2,'#4a2f8a');R(hx+1,hy-4,8,3,'#5b3fa8');R(hx+3,hy-7,4,3,'#5b3fa8');R(hx+5,hy-9,2,2,'#5b3fa8');R(hx+3,hy-3,1,1,'#ffe27a');R(hx+6,hy-5,1,1,'#ffe27a');break;
+    case 'cat':R(hx,hy-2,3,2,OUT);R(hx+7,hy-2,3,2,OUT);R(hx+1,hy-1,1,1,'#ffadc0');R(hx+8,hy-1,1,1,'#ffadc0');break;
+    case 'bow':R(hx+6,hy-2,2,3,'#ff5d8f');R(hx+9,hy-2,2,3,'#ff5d8f');R(hx+8,hy-1,1,1,'#c0306a');break;
+    case 'glasses':R(hx+1,hy+2,4,1,OUT);R(hx+5,hy+2,4,1,OUT);R(hx+1,hy+5,4,1,OUT);R(hx+5,hy+5,4,1,OUT);R(hx+1,hy+2,1,4,OUT);R(hx+8,hy+2,1,4,OUT);break;
+    case 'cap':R(hx-1,hy-1,11,3,'#ff9f43');R(hx+5,hy+1,7,1,'#e07a1f');R(hx+3,hy-1,2,1,'#fff');break;
+    case 'moon':R(hx+7,hy-2,3,2,'#ffe27a');R(hx+9,hy,1,1,'#ffe27a');break;
+    case 'goggles':R(hx,hy+1,10,1,'#444');R(hx+1,hy,3,3,'#444');R(hx+6,hy,3,3,'#444');R(hx+2,hy+1,1,1,'#7ee0ff');R(hx+7,hy+1,1,1,'#7ee0ff');break;
+    case 'flower':R(hx+7,hy-2,3,3,'#ff8fb1');R(hx+8,hy-1,1,1,'#ffe27a');break;
+    case 'coin':R(x-2,hy-6,4,4,'#d29a1e');R(x-1,hy-5,2,2,'#ffd54a');break;
+    case 'crown':R(hx+1,hy-3,8,3,'#f4b63f');R(hx+1,hy-5,2,2,'#f4b63f');R(hx+4,hy-6,2,3,'#f4b63f');R(hx+7,hy-5,2,2,'#f4b63f');R(hx+4,hy-2,2,1,'#ff5d5d');R(hx+1,hy-1,8,1,'#d29a1e');break;
+  }
+}
+function drawChair(x,y,col){R(x-5,y-13,10,9,OUT);R(x-4,y-12,8,7,col);R(x-4,y-12,8,1,shade(col,25))}
+function drawDesk(id){
+  const p=LY.aPos[id];const a=config.actions[id];const x=p.x,y=p.y;const c=chars['a:'+id];
+  const working=c&&c.state==='work';
+  R(x-16,y-4,32,14,OUT);R(x-15,y-3,30,5,'#d39a68');R(x-15,y-3,30,1,'#e6b585');R(x-15,y+2,30,7,'#a86f45');
+  R(x+3,y+4,9,3,'#8f5a36');R(x+7,y+5,1,1,'#f4b63f');R(x-14,y+9,2,2,OUT);R(x+12,y+9,2,2,OUT);
+  // 이름표 색 띠
+  R(x-15,y+8,30,1,a?a.color:'#999');
+  // 모니터
+  R(x+3,y-12,12,10,OUT);R(x+4,y-11,10,7,working?(Math.floor(T/160)%2?'#b8f5d8':'#8de9c4'):'#5f6fa8');
+  if(working){R(x+5,y-10,6,1,'#2b7a5c');R(x+5,y-8,4,1,'#2b7a5c');R(x+5,y-6,7,1,'#2b7a5c')}else{R(x+5,y-10,3,1,'#8f9fd8')}
+  R(x+8,y-3,2,1,OUT);
+  // 키보드/머그
+  R(x-7,y-2,8,2,'#f1eee8');R(x-7,y-2,8,1,'#fff');R(x-14,y-5,3,3,'#fff');R(x-14,y-5,3,1,a?a.color:'#ccc');
+  // 서류함 (대기 편지 수)
+  const q=c?c.queue.length:0;if(q){for(let i=0;i<Math.min(q,4);i++)drawLetter(x-13,y-6-i*2,false)}
+}
+function drawPodium(id){
+  const p=LY.qPos[id];const x=p.x,y=p.y;const c=chars['q:'+id];const active=c&&c.active;
+  R(x-11,y-4,22,11,OUT);R(x-10,y-3,20,4,'#9a86e0');R(x-10,y-3,20,1,'#c3b5ff');R(x-10,y+1,20,5,'#6b57b8');R(x-10,y+3,20,1,'#f4b63f');
+  // 수정구슬
+  const g=active?(Math.floor(T/120)%2?'#ffe3ff':'#d9b8ff'):'#bba7f0';
+  R(x+5,y-9,6,6,OUT);R(x+6,y-8,4,4,g);R(x+6,y-8,1,1,'#fff');R(x+5,y-4,6,1,'#f4b63f');
+}
+function drawCEODesk(){
+  const x=LY.ceo.x,y=LY.ceo.y;
+  R(x-23,y-4,46,15,OUT);R(x-22,y-3,44,6,'#7a3e2a');R(x-22,y-3,44,1,'#a55a3f');R(x-22,y+3,44,7,'#5e2c1d');R(x-22,y+3,44,1,'#f4b63f');
+  R(x-6,y+5,12,3,'#f4b63f');R(x-5,y+6,10,1,'#7a3e2a');
+  // 노트북
+  R(x+8,y-8,11,7,OUT);R(x+9,y-7,9,5,'#b8e2ff');R(x+7,y-2,13,2,'#ccd');
+  // 결재 대기 편지 더미
+  const n=ceoPending().length;for(let i=0;i<Math.min(n,6);i++)drawLetter(x-20+(i%2)*2,y-6-i*2,i===Math.min(n,6)-1);
+  // 결재 도장
+  R(x-9,y-4,3,3,'#ff5d5d');R(x-8,y-6,1,2,OUT);
+}
+function drawMailbox(){
+  const x=LY.mail.x,y=LY.mail.y;const n=inbox.length;
+  R(x-1,y-6,3,8,OUT);R(x,y-6,1,7,'#6b4f3a');
+  R(x-9,y-19,18,14,OUT);R(x-8,y-18,16,12,'#e64b4b');R(x-8,y-18,16,2,'#ff7a7a');R(x-5,y-13,10,2,OUT);
+  // 깃발
+  if(n){const wv=Math.floor(T/200)%2;R(x+9,y-22,1,10,OUT);R(x+10,y-22,5+wv,4,'#ffd54a')}else{R(x+9,y-13,6,1,OUT);R(x+13,y-14,2,3,'#ffd54a')}
+  for(let i=0;i<Math.min(n,4);i++)drawLetter(x-4+((i%2)?2:-2),y-24-i*3,i===0);
+}
+function drawParticles(){
+  for(const p of particles){const a=1-p.life/p.max;ctx.globalAlpha=clamp(a,0,1);const x=Math.round(p.x),y=Math.round(p.y);
+    if(p.t==='s'){R(x,y-1,1,3,p.c);R(x-1,y,3,1,p.c)}else if(p.t==='h'){R(x-1,y,1,1,p.c);R(x+1,y,1,1,p.c);R(x-1,y+1,3,1,p.c);R(x,y+2,1,1,p.c)}else R(x,y,1,1,p.c)}
+  ctx.globalAlpha=1;
+}
+/* ---- 화면 좌표 텍스트 (한글) ---- */
+function fontPx(n){return Math.round(n*DPR*ZF)}
+function wrapText(text,maxW){
+  const lines=[];for(const para of String(text).split('\n')){let cur='';
+    for(const ch of para){const t=cur+ch;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=ch.trimStart()}else cur=t}
+    lines.push(cur)}return lines;
+}
+function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawBubble(tipX,tipY,text,kind){
+  const fs=fontPx(12);ctx.font=`${fs}px Jua, 'Gowun Dodum', sans-serif`;
+  const maxW=fontPx(kind==='draft'?190:150);let lines=wrapText(text,maxW);
+  if(lines.length>5){lines=lines.slice(0,5);lines[4]=lines[4].slice(0,-1)+'…'}
+  const lh=fs*1.25,pad=fontPx(6);const w=Math.max(...lines.map(l=>ctx.measureText(l).width))+pad*2,h=lines.length*lh+pad*2-fs*0.2;
+  const tail=fontPx(7);let bx=clamp(tipX-w/2,4,cv.width-w-4),by=tipY-h-tail;if(by<4)by=4;
+  const fill={ceo:'#fff1b8',low:'#ffe1e1',draft:'#e9fff4',think:'#f1ebff'}[kind]||'#fff';
+  ctx.lineWidth=Math.max(2,2*DPR);ctx.strokeStyle=OUT;ctx.fillStyle=fill;
+  roundRect(bx,by,w,h,fontPx(6));ctx.fill();ctx.stroke();
+  ctx.beginPath();const tx=clamp(tipX,bx+10,bx+w-10);ctx.moveTo(tx-tail*0.7,by+h-1);ctx.lineTo(tx,by+h+tail);ctx.lineTo(tx+tail*0.7,by+h-1);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(tx-tail*0.7,by+h);ctx.lineTo(tx,by+h+tail);ctx.lineTo(tx+tail*0.7,by+h);ctx.stroke();
+  ctx.fillStyle=OUT;ctx.textBaseline='top';lines.forEach((l,i)=>ctx.fillText(l,bx+pad,by+pad+i*lh));
+}
+function drawLabel(x,y,title,sub,col,fz=11){
+  const X=x*S,Y=y*S;ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.font=`${fontPx(fz)}px Jua, sans-serif`;const tw=ctx.measureText(title).width;const fs2=fontPx(9.5);
+  ctx.fillStyle='rgba(255,250,241,.88)';roundRect(X-tw/2-fontPx(4),Y-fontPx(1),tw+fontPx(8),fontPx(13),fontPx(3));ctx.fill();
+  if(col){ctx.fillStyle=col;ctx.fillRect(X-tw/2-fontPx(4),Y-fontPx(1),fontPx(3),fontPx(13))}
+  ctx.fillStyle=OUT;ctx.fillText(title,X,Y);
+  if(sub){ctx.font=`${fs2}px 'Gowun Dodum', sans-serif`;ctx.fillStyle='#4b4060';ctx.fillText(sub,X,Y+fontPx(13))}
+  ctx.textAlign='left';
+}
+function drawClock(){
+  const x=118,y=14;R(x-8,y-8,16,16,OUT);R(x-7,y-7,14,14,'#fff');R(x-1,y-7,2,1,'#c9374a');
+  const d=new Date();const hA=((d.getHours()%12)+d.getMinutes()/60)/12*Math.PI*2,mA=d.getMinutes()/60*Math.PI*2;
+  ctx.strokeStyle=OUT;ctx.lineCap='round';ctx.lineWidth=S*1.1;
+  ctx.beginPath();ctx.moveTo(x*S,y*S);ctx.lineTo((x+Math.sin(hA)*3.5)*S,(y-Math.cos(hA)*3.5)*S);ctx.stroke();
+  ctx.lineWidth=S*0.8;ctx.beginPath();ctx.moveTo(x*S,y*S);ctx.lineTo((x+Math.sin(mA)*5.5)*S,(y-Math.cos(mA)*5.5)*S);ctx.stroke();
+}
+
+let lastT=performance.now();
+function frame(now){
+  const dt=Math.min(60,now-lastT)/1000;lastT=now;T=now;
+  update(dt);
+  ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(bg,0,0,cv.width,cv.height);
+  drawClock();
+  const list=[];
+  list.push({y:LY.mail.y,d:drawMailbox});
+  for(const id of qList())if(LY.qPos[id])list.push({y:LY.qPos[id].y+2,d:()=>drawPodium(id)});
+  for(const id of aList())if(LY.aPos[id]){const p=LY.aPos[id];const a=config.actions[id];list.push({y:p.y-6,d:()=>drawChair(p.x-3,p.y,a.color)});list.push({y:p.y+2,d:()=>drawDesk(id)})}
+  list.push({y:LY.ceo.y-6,d:()=>{drawChair(LY.ceo.x,LY.ceo.y,'#c9374a');R(LY.ceo.x-6,LY.ceo.y-16,12,4,'#f4b63f')}});
+  list.push({y:LY.ceo.y+2,d:drawCEODesk});
+  for(const k in chars){const c=chars[k];list.push({y:c.y,d:()=>drawChar(c)})}
+  for(const l of floorLetters)if(l.vis&&!flying.some(f=>f.l===l))list.push({y:l.y+5,d:()=>drawLetter(l.x,l.y,true)});
+  list.sort((a,b)=>a.y-b.y).forEach(o=>o.d());
+  for(const f of flying)drawLetter(f.l.x,f.l.y,true);
+  drawParticles();
+  // ---- 글자 레이어 ----
+  ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillStyle='#ffe9a8';ctx.font=`${fontPx(15)}px Jua, sans-serif`;
+  ctx.fillText('🔮 사주 AI 컴퍼니',240*S,15*S);
+  ctx.fillStyle='#fff';ctx.font=`${fontPx(8)}px Jua, sans-serif`;ctx.fillText('만세력',151*S,8.5*S);
+  ctx.fillStyle=OUT;ctx.font=`${fontPx(10)}px Jua, sans-serif`;ctx.fillText('📬 우편함',LY.mail.x*S,(LY.mail.y+9)*S);
+  ctx.fillText('👑 대표실',(LY.ceoRoom.x0+22)*S,(LY.ceoRoom.y0+7)*S);
+  ctx.textAlign='left';
+  for(const id of qList()){const p=LY.qPos[id];if(!p)continue;const q=config.questions[id];drawLabel(p.x,p.y+8,q.label,q.who+' · '+TYPE_KO[q.type],'#8b6cff',10)}
+  for(const id of aList()){const p=LY.aPos[id];if(!p)continue;const a=config.actions[id];drawLabel(p.x,p.y+11,a.name,a.who+' · '+a.dept,a.color)}
+  drawLabel(LY.ceo.x,LY.ceo.y+12,'👑 대표 (나)','최종 결정권자','#f4b63f');
+  // 이모트
+  ctx.font=`${fontPx(11)}px sans-serif`;ctx.textAlign='center';
+  for(const k in chars){const c=chars[k];if(c.emote&&!c.bubble){const a=clamp((c.emote.until-T)/400,0,1);ctx.globalAlpha=a;ctx.fillText(c.emote.t,(c.x+7)*S,(c.y-24-((T/300)%2))*S)}}
+  ctx.globalAlpha=1;ctx.textAlign='left';
+  // 말풍선
+  const ceo=chars.ceo;const pend=ceoPending();
+  for(const k in chars){const c=chars[k];
+    if(c===ceo&&pend.length&&!c.bubble){const nd=pend.filter(e=>e.status==='ceo_wait').length;
+      drawBubble(c.x*S,(c.y-25)*S,nd?`❓ 결정해 주세요! (${nd}건)`:`📄 보고서 ${pend.length}건 확인`,'ceo');continue}
+    if(!c.bubble)continue;const b=c.bubble;let text=b.text;
+    if(b.typing){const n=Math.floor((T-b.t0)/28*(settings.speed||1));text=text.slice(0,Math.max(1,n))+(n<b.text.length?'▌':'')}
+    drawBubble(c.x*S,(c.y-25)*S,text,b.kind)}
+  requestAnimationFrame(frame);
+}
+
+/* =========================================================
+   업무 파이프라인
+   ========================================================= */
+function ceoPending(){return logEntries.filter(e=>e.status==='ceo_wait'||e.status==='report_wait')}
+function enqueue(msg){
+  const m={sender:(msg.sender||'').trim()||'익명 고객',subject:(msg.subject||'').trim(),body:(msg.body||'').trim()};
+  if(!m.body){toast('✏️ 내용을 입력해 주세요');return}
+  if(!m.subject)m.subject=m.body.slice(0,22)+(m.body.length>22?'…':'');
+  const probs=validateConfig();if(probs.length){toast('⚠️ 질문 설정에 문제가 있어요: '+esc(probs[0]),4000);return}
+  inbox.push({id:rid('m'),msg:m});updateQueueInfo();
+  runPipeline();
+}
+function updateQueueInfo(){$('#queueInfo').textContent=`우편함 대기 ${inbox.length}통`+(pipelinePaused?' · ⏸ AI 연결을 기다리는 중':'')}
+async function runPipeline(){
+  if(pipelineBusy)return;pipelineBusy=true;pipelinePaused=false;updateQueueInfo();
+  try{while(inbox.length){const ok=await processOne(inbox[0]);if(!ok){pipelinePaused=true;break}inbox.shift();updateQueueInfo()}}
+  finally{pipelineBusy=false;updateQueueInfo()}
+}
+async function processOne(item){
+  const msg=item.msg;const rootC=chars['q:'+config.root];if(!rootC)return false;
+  const letter=newLetter(LY.mail.x-3,LY.mail.y-24);
+  const head=()=>({x:rootC.x-3,y:rootC.y-30});
+  await flyLetter(letter,head());
+  rootC.active=true;bubble(rootC,'🤔 생각 중…',Infinity,'think');
+  let res;
+  try{res=settings.demo?demoDecide(msg):await decideReal(msg)}
+  catch(err){
+    rootC.active=false;bubble(rootC,'😢 AI 연결 실패',3000,'low');
+    await flyLetter(letter,{x:LY.mail.x-3,y:LY.mail.y-24});removeLetter(letter);
+    handleAIError(err);stopAuto();return false;
+  }
+  if(settings.demo)await sleep(250);
+  const walk=walkTree(res.answers);
+  const entry={id:item.id,t:Date.now(),msg,model:res.model,demo:res.demo,ms:Math.round(res.ms),usage:res.usage,answers:res.answers,
+    path:walk.path,outcome:walk.outcome,finalAction:walk.outcome.kind==='action'?walk.outcome.id:null,decidedBy:walk.outcome.kind==='action'?'ai':null,
+    status:'routing',feedback:null,correctAction:null,draft:'',threshold:settings.threshold};
+  logEntries.unshift(entry);saveLog();selectedEntryId=entry.id;
+  renderPanel(entry,0);renderLog();renderTree();updateStats();
+  // 질문 담당을 차례로 거치기
+  let prev=rootC;
+  for(let i=0;i<walk.path.length;i++){
+    const st=walk.path[i];const qc=chars['q:'+st.qid];if(!qc)continue;
+    if(i>0){prev.active=false;await flyLetter(letter,{x:qc.x-3,y:qc.y-30})}
+    qc.active=true;revealStep(entry.id,i);
+    let t;if(st.type==='noul')t=`${st.keyLabel} (${pct(st.p,0)})`;else if(st.type==='score')t=`${st.keyLabel} (점수 ${(+st.score).toFixed(2)})`;else t=`${st.keyLabel} ${pct(st.opts.find(o=>o.key===st.key)?.prob,0)}`;
+    bubble(qc,(st.low?'❓ ':'✅ ')+t+(st.low?` · 확신 ${st.conf.toFixed(2)}`:''),2600,st.low?'low':'');
+    happy(qc,500);await sleep(1150);prev=qc;
+  }
+  prev.active=false;
+  revealResult(entry.id);
+  if(walk.outcome.kind==='ceo'){
+    entry.status='ceo_wait';saveLog();
+    const ceo=chars.ceo;await flyLetter(letter,{x:LY.ceo.x-20,y:LY.ceo.y-8});removeLetter(letter);
+    bubble(ceo,'❓ 음… 제가 볼게요!',1800,'ceo');
+    toast(`👑 대표님 결재가 필요해요 — “${esc(msg.subject)}”`);renderCEO();renderLog();updateStats();
+  }else{
+    entry.status='working';saveLog();
+    const spotPlace=placeQ(prev.refId);
+    await flyLetter(letter,{x:spotPlace.spot.x-3,y:spotPlace.spot.y-3},380);
+    deliver(entry,letter,spotPlace);
+    await sleep(500);
+  }
+  return true;
+}
+function deliver(entry,letter,place){
+  const c=chars['a:'+entry.finalAction];
+  if(!c){removeLetter(letter);entry.status='ceo_wait';entry.outcome={kind:'ceo',reason:'담당 업무가 없어요'};saveLog();renderCEO();return}
+  if(!c.busy){
+    c.busy=true;
+    (async()=>{
+      const home=placeA(c.refId);
+      await walkTo(c,route(home,place));
+      removeLetter(letter);c.carry=true;hearts(c.x,c.y-22,2);
+      await walkTo(c,route(place,placeA(c.refId)));c.carry=false;
+      await doWork(c,entry);
+      c.busy=false;drain(c);
+    })();
+  }else{
+    const p=LY.aPos[c.refId];flyLetter(letter,{x:p.x-13,y:p.y-8}).then(()=>{removeLetter(letter);c.queue.push(entry)});
+  }
+}
+async function drain(c){if(c.busy||!c.queue.length)return;c.busy=true;while(c.queue.length){const e=c.queue.shift();await doWork(c,e)}c.busy=false}
+function fillTemplate(t,e){return String(t||'').replaceAll('{고객명}',e.msg.sender).replaceAll('{제목}',e.msg.subject)}
+async function doWork(c,entry){
+  const a=config.actions[entry.finalAction];if(!a){entry.status='done';saveLog();return}
+  const draft=fillTemplate(a.template,entry);entry.draft=draft;
+  c.state='work';c.lastWork=T;
+  if(a.task==='assign'){bubble(c,`📌 ${a.assignee||'담당자'}에게 배정!`,1600,'');await sleep(1700);c.state='work'}
+  if(a.task==='hold'){bubble(c,'🗄️ '+draft,3200,'draft',true);await sleep(3300)}
+  else{bubble(c,(a.task==='ceo'?'📝 ':'✍️ ')+draft,Math.max(3200,draft.length*40),'draft',true);await sleep(Math.max(3200,draft.length*36))}
+  if(a.task==='ceo'){
+    c.state='idle';c.carry=true;const home=placeA(c.refId);
+    await walkTo(c,route(home,placeCEO()));c.carry=false;bubble(c,'대표님, 보고드려요!',1500);bubble(chars.ceo,'📄 확인할게요',1400,'ceo');
+    entry.status='report_wait';saveLog();renderCEO();
+    await sleep(600);await walkTo(c,route(placeCEO(),home));
+  }else entry.status='done';
+  c.state='idle';happy(c,1000);sparkle(c.x+4,c.y-14,18);hearts(c.x,c.y-20,2);
+  entry.doneAt=Date.now();saveLog();renderLog();updateStats();renderCEO();
+  if(selectedEntryId===entry.id)renderPanel(entry,99);
+}
+
+/* ---- CEO 결정 ---- */
+function renderCEO(){
+  const items=ceoPending();const bar=$('#ceoBar');bar.classList.toggle('show',items.length>0);
+  bar.classList.toggle('has-decide',items.some(e=>e.status==='ceo_wait'));
+  $('#ceoItems').innerHTML=items.map(e=>`<div class="ceo-item" data-id="${e.id}"><div class="t">${e.status==='ceo_wait'?'❓ 결정 필요':'📄 보고 확인'} · ${esc(e.msg.sender)}</div><div class="s">${esc(e.msg.subject)}</div><div class="s">${e.status==='ceo_wait'?esc(e.outcome?.reason||''):esc(config.actions[e.finalAction]?.name||'')}</div></div>`).join('');
+  $$('#ceoItems .ceo-item').forEach(el=>el.onclick=()=>openCEO(el.dataset.id));
+  updateStats();
+}
+function openCEO(id){
+  const e=logEntries.find(x=>x.id===id);if(!e)return;selectedEntryId=id;renderPanel(e,99);
+  const pathTxt=e.path.map(s=>`<span class="ans-chip ${s.low?'low':''}">${esc(s.label)}: ${esc(s.keyLabel)} · 확신 ${s.conf.toFixed(2)}</span>`).join(' ');
+  if(e.status==='ceo_wait'){
+    openModal(`<h3>👑 대표님, 어떻게 처리할까요?</h3>
+      <div class="dp-msg"><div class="from">${esc(e.msg.sender)} · ${fmtTime(e.t)}</div><div class="subj">${esc(e.msg.subject)}</div><div class="body">${esc(e.msg.body)}</div></div>
+      <p><b>왜 저에게 왔나요?</b> ${esc(e.outcome?.reason||'')}</p><div>${pathTxt||'<span class="muted">(AI 답 없음)</span>'}</div>
+      <p class="hint" style="margin-top:10px">업무를 고르면 그 담당 직원이 대표실로 편지를 가지러 와요.</p>
+      <div class="act-pick">${aList().map(aid=>{const a=config.actions[aid];return `<button class="btn" data-a="${aid}" style="border-left:8px solid ${a.color}">${esc(a.name)}<small>${esc(a.who)} · ${esc(a.dept)} · ${TASK_KO[a.task]}</small></button>`}).join('')}</div>
+      <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn" data-close>나중에</button></div>`);
+    $$('#modal .act-pick .btn').forEach(b=>b.onclick=()=>{closeModal();ceoDecide(e,b.dataset.a)});
+  }else{
+    const a=config.actions[e.finalAction];
+    openModal(`<h3>📄 ${esc(a?.name||'보고')} 보고서</h3>
+      <div class="dp-msg"><div class="from">${esc(e.msg.sender)}</div><div class="subj">${esc(e.msg.subject)}</div><div class="body">${esc(e.msg.body)}</div></div>
+      <div class="result"><div>${esc(a?.who||'')}의 보고</div><div class="draft">${esc(e.draft)}</div></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn" data-close>나중에</button><button class="btn danger" id="rjBtn">❌ 반려</button><button class="btn mint" id="apBtn">✅ 승인</button></div>`);
+    const fin=v=>{e.ceoApproval=v;e.status='done';saveLog();closeModal();renderCEO();renderLog();updateStats();happy(chars.ceo,900);sparkle(chars.ceo.x,chars.ceo.y-16,14);bubble(chars.ceo,v==='approved'?'✅ 승인!':'❌ 반려!',1500,'ceo')};
+    $('#apBtn').onclick=()=>fin('approved');$('#rjBtn').onclick=()=>fin('rejected');
+  }
+}
+function ceoDecide(e,aid){
+  e.finalAction=aid;e.decidedBy='ceo';e.status='working';saveLog();renderCEO();renderLog();
+  const ceo=chars.ceo;happy(ceo,800);bubble(ceo,`👉 ${config.actions[aid].name}(으)로!`,1800,'ceo');
+  const pl=placeCEO();const l=newLetter(pl.spot.x-3,pl.spot.y-3);sparkle(pl.spot.x,pl.spot.y,8);
+  deliver(e,l,pl);if(selectedEntryId===e.id)renderPanel(e,99);
+}
+
+/* ---- 오류 안내 ---- */
+function handleAIError(err){
+  let detail='';
+  if(err.kind==='network')detail='브라우저가 Ollama에 닿지 못했어요. (꺼져 있거나, 브라우저 보안(CORS)으로 막혔을 수 있어요)';
+  else if(err.kind==='http'&&err.status===404)detail=`404 — <code>/v1/systemone</code>을 찾지 못했어요. Ollama 버전이 0.35보다 낮거나, 모델 <b>${esc(settings.model)}</b>이 설치되지 않았을 수 있어요.`;
+  else if(err.kind==='http')detail=`HTTP ${err.status} 오류`;
+  else detail=esc(err.kind||'오류');
+  $('#connBannerText').innerHTML=detail+' 편지는 우편함에서 기다리고 있어요.';
+  $('#connBanner').classList.add('show');
+  showGuide(detail,err.msg);
+  checkConnection(true);
+}
+function showGuide(detail,raw){
+  openModal(`<h3>🔌 로컬 AI(Ollama) 연결 도움말</h3>
+    ${detail?`<div class="warnlist">${detail}${raw?`<div class="hint" style="margin-top:4px">원문: ${esc(raw)}</div>`:''}</div>`:''}
+    <ol>
+      <li><b>Ollama가 켜져 있나요?</b><br>Ollama 앱을 실행하거나 터미널에서 <code>ollama serve</code></li>
+      <li><b>버전이 0.35 이상인가요?</b><br><code>ollama --version</code> → 낮으면 ollama.com에서 최신 버전으로 업데이트 (systemone 기능은 0.35+)</li>
+      <li><b>모델을 받았나요?</b><br><code>ollama pull tev1:0.8b</code> (다른 모델을 골랐다면 <code>ollama pull tev1</code> / <code>ollama pull nimble</code>)</li>
+      <li><b>브라우저가 막혔나요? (CORS)</b> 파일을 더블클릭해 열면 출처가 <code>file://</code>이라 막힐 수 있어요. 허용 후 Ollama를 <b>재시작</b>하세요.
+        <ul>
+          <li>macOS: <code>launchctl setenv OLLAMA_ORIGINS "*"</code></li>
+          <li>Windows: 시스템 환경 변수에 <code>OLLAMA_ORIGINS</code> = <code>*</code> 추가</li>
+          <li>Linux: <code>OLLAMA_ORIGINS="*" ollama serve</code></li>
+        </ul></li>
+      <li><b>주소 확인</b>: 지금 주소는 <code>${esc(settings.baseUrl)}</code> (⚙️ 설정 탭에서 바꿀 수 있어요)</li>
+    </ol>
+    <p class="hint">이 앱은 AI 결과를 절대 지어내지 않아요. 연결 전에는 편지가 우편함에서 기다려요. 화면만 둘러보려면 <b>체험 모드</b>(키워드 규칙, 실제 AI 아님)를 켤 수 있어요.</p>
+    <div class="row" style="justify-content:flex-end"><button class="btn" id="gDemo">🧪 체험 모드 켜기</button><button class="btn primary" id="gRetry">🔄 다시 시도</button></div>`);
+  $('#gRetry').onclick=()=>{closeModal();retry()};$('#gDemo').onclick=()=>{closeModal();setDemo(true)};
+}
+async function retry(){await checkConnection();if(conn.ok||settings.demo){$('#connBanner').classList.remove('show');runPipeline()}}
+
+/* =========================================================
+   판단 패널
+   ========================================================= */
+function stepHTML(st,i,hidden){
+  const q=config.questions[st.qid];
+  let bars='';
+  st.opts.forEach(o=>{
+    const chosen=o.key===st.key;const w=clamp(o.prob,0,1)*100;
+    const th=st.type==='noul'&&o.key==='yes'?`<span class="th" style="left:${(st.yesThreshold??0.7)*100}%" title="예 기준"></span>`:'';
+    bars+=`<div class="bar-row ${chosen?'chosen':''}"><span class="bl" title="${esc(o.label)} (${esc(o.key)})">${chosen?'▶ ':''}${esc(o.label)} <small>${st.type==='choice'?esc(o.key):''}</small></span><div class="bar"><i data-w="${w}" style="width:${hidden?0:w}%"></i>${th}</div><span class="bp">${pct(o.prob,1)}</span></div>`;
+  });
+  const extra=st.type==='score'?`<div class="hint">점수 ${(+st.score).toFixed(3)} (0부터 시작하는 단계의 확률 가중 평균) → 반올림 ${st.key}단계</div>`:st.type==='noul'?`<div class="hint">예 확률 ${pct(st.p,1)} · 예 기준 ${pct(st.yesThreshold,0)}${st.confDerived?' · 확신도 = |예확률−0.5|×2':''}</div>`:'';
+  let res='';
+  if(st.low)res=`<div class="res" style="color:#c0303a">👑 확신도 ${st.conf.toFixed(2)} &lt; 기준 ${st.min.toFixed(2)} → 대표에게</div>`;
+  else if(!st.next)res=`<div class="res">👑 다음 단계 미지정 → 대표에게</div>`;
+  else if(st.next.kind==='question')res=`<div class="res">→ ❓ ${esc(config.questions[st.next.id]?.label||'?')}</div>`;
+  else res=`<div class="res">→ 🧑‍💼 ${esc(config.actions[st.next.id]?.name||'?')}</div>`;
+  const cw=clamp(st.conf,0,1)*100;
+  return `<div class="step ${hidden?'hidden':''} ${st.low?'low':''}" data-i="${i}">
+    <div class="step-h"><span class="n">${i+1}</span>${esc(st.label)} <span class="tbadge">${TYPE_KO[st.type]}</span><span class="who">${esc(st.who||q?.who||'')}</span></div>
+    ${bars}${extra}
+    <div class="gauge"><span>확신도</span><div class="g-track"><i class="g-fill" data-w="${cw}" style="width:${hidden?0:cw}%;background:${confColor(st.conf)}"></i><b class="g-th" style="left:${st.min*100}%" title="대표 호출 기준"></b></div><b style="color:${confColor(st.conf)}">${st.conf.toFixed(2)}</b></div>
+    ${res}</div>`;
+}
+function resultHTML(e){
+  if(e.status==='ceo_wait')return `<div class="result ceo">👑 대표 결재 대기 — ${esc(e.outcome?.reason||'')}<div class="row" style="margin-top:6px"><button class="btn sm gold" onclick="openCEO('${e.id}')">지금 결정하기</button></div></div>`;
+  const a=config.actions[e.finalAction];if(!a)return `<div class="result ceo">처리 업무 없음</div>`;
+  const st={routing:'이동 중',working:'작업 중…',done:'완료 ✨',report_wait:'대표 보고 대기'}[e.status]||e.status;
+  return `<div class="result"><div>${e.decidedBy==='ceo'?'👑 대표 결정':'🤖 AI 결정'} → ${esc(a.name)} <span class="muted" style="font-weight:400">(${esc(a.who)} · ${esc(a.dept)} · ${TASK_KO[a.task]})</span> · ${st}</div>
+    ${e.draft?`<div class="draft"><b>답장 초안(템플릿)</b><br>${esc(e.draft)}</div>`:''}${e.ceoApproval?`<div class="hint">대표 결재: ${e.ceoApproval==='approved'?'✅ 승인':'❌ 반려'}</div>`:''}</div>`;
+}
+function renderPanel(e,revealUpTo){
+  $('#dpThresh').innerHTML=`대표 호출 기준 &lt; ${settings.threshold.toFixed(2)}`;
+  if(!e){$('#dpBody').innerHTML='<div class="dp-empty">📭 아직 편지가 없어요.<br>아래에서 예시를 눌러 보내 보세요!</div>';return}
+  const unpath=Object.keys(e.answers||{}).filter(k=>!e.path.some(s=>s.qid===k));
+  $('#dpBody').innerHTML=`
+    <div class="dp-msg"><div class="from">✉️ ${esc(e.msg.sender)} · ${fmtTime(e.t)}</div><div class="subj">${esc(e.msg.subject)}</div><div class="body">${esc(e.msg.body)}</div></div>
+    <div class="dp-meta">${e.demo?'<span class="chip demo">🧪 체험 모드 · 실제 AI 아님</span>':'<span class="chip real">🤖 로컬 AI</span>'}<span class="chip">${esc(e.model)}</span><span class="chip ms">⏱️ ${e.ms}ms</span>${e.usage?`<span class="chip">토큰 ${e.usage.input_tokens??'?'}→${e.usage.output_tokens??'?'}</span>`:''}<span class="chip">₩0</span></div>
+    <div id="dpSteps">${e.path.map((s,i)=>stepHTML(s,i,i>revealUpTo)).join('')}</div>
+    <div id="dpResult" style="${revealUpTo>=e.path.length?'':'display:none'}">${resultHTML(e)}</div>
+    ${unpath.length?`<details class="mini"><summary>경로 밖 질문 ${unpath.length}개 (참고용 답)</summary>${unpath.map(k=>{const q=config.questions[k];const r=q?interpret(k,e.answers[k]):null;return `<div class="hint">• ${esc(q?.label||k)}: ${r?esc(q.options.find(o=>o.key===r.key)?.label||r.key)+' · 확신 '+r.conf.toFixed(2):'-'}</div>`}).join('')}</details>`:''}
+    <details class="mini" open><summary>🌳 이 편지가 지나간 길</summary><ul class="tree mini">${treeInner(pathHL(e),true)}</ul></details>`;
+  $$('#dpBody .step:not(.hidden) i[data-w]').forEach(el=>{el.style.width='0%';requestAnimationFrame(()=>requestAnimationFrame(()=>el.style.width=el.dataset.w+'%'))});
+}
+function revealStep(id,i){
+  if(selectedEntryId!==id)return;
+  $$('#dpBody .step').forEach(s=>s.classList.remove('active'));
+  const el=$(`#dpBody .step[data-i="${i}"]`);if(!el)return;el.classList.remove('hidden');el.classList.add('active');
+  $$('i[data-w]',el).forEach(b=>requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.width=b.dataset.w+'%')));
+  el.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function revealResult(id){if(selectedEntryId!==id)return;$$('#dpBody .step').forEach(s=>s.classList.remove('active'));const r=$('#dpResult');if(r){r.style.display='';r.innerHTML=resultHTML(logEntries.find(x=>x.id===id))}}
+
+/* =========================================================
+   트리
+   ========================================================= */
+function pathHL(e){
+  const edges=new Set(),qs=new Set();let act=null,ceoQ=null;
+  if(e){e.path.forEach(s=>{qs.add(s.qid);if(!s.low)edges.add(s.qid+'|'+s.key)});
+    if(e.outcome?.kind==='action'&&e.decidedBy!=='ceo')act=e.outcome.id;
+    if(e.outcome?.kind==='ceo'&&e.path.length)ceoQ=e.path[e.path.length-1].qid}
+  return {edges,qs,act,ceoQ};
+}
+function treeInner(hl,mini){
+  const seen=new Set();
+  const target=(n,eh)=>{
+    if(!n)return `<span class="node ceo">👑 대표에게 (미지정)</span>`;
+    if(n.kind==='action'){const a=config.actions[n.id];if(!a)return `<span class="node missing">❗ 삭제된 업무</span>`;
+      const sel=!mini&&editorSel.kind==='action'&&editorSel.id===n.id;
+      return `<span class="node act ${eh&&hl.act===n.id?'hl':''} ${sel?'sel':''}" data-a="${n.id}"><span style="width:9px;height:9px;border-radius:2px;background:${a.color};display:inline-block;border:1.5px solid #2b2340"></span>${esc(a.name)} <small class="muted">${esc(a.who)}</small></span>`}
+    return qNode(n.id,eh);
+  };
+  const qNode=(qid)=>{
+    const q=config.questions[qid];if(!q)return `<span class="node missing">❗ 없는 질문</span>`;
+    if(seen.has(qid))return `<span class="node ref" data-q="${qid}">↪ ${esc(q.label)} <small>(위 참조)</small></span>`;
+    seen.add(qid);
+    const sel=!mini&&editorSel.kind==='question'&&editorSel.id===qid;
+    let h=`<span class="node q ${hl.qs.has(qid)?'hl':''} ${hl.ceoQ===qid?'hlceo':''} ${sel?'sel':''}" data-q="${qid}">❓ ${esc(q.label)} <span class="tbadge">${TYPE_KO[q.type]}</span>${hl.ceoQ===qid?' 👑':''}</span><ul>`;
+    q.options.forEach(o=>{const eh=hl.edges.has(qid+'|'+o.key);
+      h+=`<li class="${eh?'hl':''}"><span class="edge">${esc(o.label)}${q.type==='noul'&&o.key==='yes'?' ≥'+pct(q.yesThreshold):''}</span>${target(o.next,eh)}</li>`});
+    return h+'</ul>';
+  };
+  return `<li>${qNode(config.root)}</li>`;
+}
+function renderTree(){
+  const e=logEntries.find(x=>x.id===selectedEntryId)||logEntries[0];
+  $('#treeView').innerHTML=treeInner(pathHL(e),false);
+  const reach=new Set(reachable());const orph=qList().filter(id=>!reach.has(id));
+  const usedA=new Set();qList().forEach(id=>config.questions[id].options.forEach(o=>{if(o.next?.kind==='action')usedA.add(o.next.id)}));
+  const orphA=aList().filter(id=>!usedA.has(id));
+  $('#orphans').innerHTML=(orph.length?`<div class="legend" style="margin-top:12px">🔌 연결 안 된 질문 (루트에서 닿지 않아 AI에 보내지 않아요)</div><div class="act-list">${orph.map(id=>`<span class="node q ${editorSel.id===id?'sel':''}" data-q="${id}">❓ ${esc(config.questions[id].label)}</span>`).join('')}</div>`:'')
+    +`<div class="legend" style="margin-top:12px">🧑‍💼 전체 업무 (직원) ${aList().length}명${orphA.length?' · 회색 점선 = 아직 어떤 답에도 연결 안 됨 (대표가 직접 고를 때만 사용)':''}</div><div class="act-list">${aList().map(id=>{const a=config.actions[id];return `<span class="node act ${editorSel.kind==='action'&&editorSel.id===id?'sel':''}" data-a="${id}" style="${orphA.includes(id)?'border-style:dashed;opacity:.75':''}"><span style="width:9px;height:9px;border-radius:2px;background:${a.color};display:inline-block;border:1.5px solid #2b2340"></span>${esc(a.name)}</span>`}).join('')}</div>`;
+  $$('#pane-tree [data-q]').forEach(el=>el.onclick=ev=>{ev.stopPropagation();editorSel={kind:'question',id:el.dataset.q};renderTree();renderEditor()});
+  $$('#pane-tree [data-a]').forEach(el=>el.onclick=ev=>{ev.stopPropagation();editorSel={kind:'action',id:el.dataset.a};renderTree();renderEditor()});
+}
+
+/* =========================================================
+   편집기
+   ========================================================= */
+function nextOptionsHTML(cur,selfQ){
+  const v=!cur?'ceo':(cur.kind==='question'?'q:':'a:')+cur.id;
+  let h=`<option value="ceo" ${v==='ceo'?'selected':''}>👑 대표에게 (미지정)</option><optgroup label="다음 질문">`;
+  qList().forEach(id=>{if(id===selfQ)return;h+=`<option value="q:${id}" ${v==='q:'+id?'selected':''}>❓ ${esc(config.questions[id].label)}</option>`});
+  h+=`<option value="new_q">➕ 새 질문 만들기…</option></optgroup><optgroup label="업무 (담당 직원)">`;
+  aList().forEach(id=>{h+=`<option value="a:${id}" ${v==='a:'+id?'selected':''}>🧑‍💼 ${esc(config.actions[id].name)} (${esc(config.actions[id].who)})</option>`});
+  return h+`<option value="new_a">➕ 새 업무 만들기 (새 직원 입사)…</option></optgroup>`;
+}
+function onConfigChanged(structural){
+  config=normalizeConfig(config);saveConfig();renderTree();
+  if(structural)syncWorld(true);
+  const p=validateConfig();const w=$('#cfgWarn');if(w)w.innerHTML=p.length?`<div class="warnlist">⚠️ ${p.map(esc).join('<br>⚠️ ')}</div>`:`<div class="okline">✅ 설정이 올바르고, AI에 보낼 질문 ${reachable().length}개</div>`;
+}
+const CUTE=['몽이','콩이','뽀미','나비','두리','하늘','별이','솜이','쿠키','모카','라떼','보리','다온','유니','찰떡','호두'];
+function createAction(){
+  const id=rid('act');const col=`hsl(${Math.floor(Math.random()*360)},65%,58%)`;
+  const hex=(()=>{const c=document.createElement('canvas').getContext('2d');c.fillStyle=col;return c.fillStyle})();
+  config.actions[id]={name:'새 업무',dept:'신규팀',who:CUTE[Math.floor(Math.random()*CUTE.length)],task:'draft',color:hex,acc:ACCS[Math.floor(Math.random()*ACCS.length)],assignee:'',template:'{고객명}님, 문의 감사합니다. 확인 후 빠르게 안내드릴게요.'};
+  config.actionOrder.push(id);toast(`🎉 새 직원 <b>${esc(config.actions[id].who)}</b> 입사! 문에서 걸어 들어와요`);
+  return id;
+}
+function createQuestion(){
+  const id=rid('q');config.questions[id]={label:'새 질문',who:CUTE[Math.floor(Math.random()*CUTE.length)],type:'choice',instructions:'Which category best describes this message?',
+    options:[{key:'option_a',label:'보기 A',criteria:'Describe option A in English',next:null},{key:'option_b',label:'보기 B',criteria:'Describe option B in English',next:null}]};
+  config.order.push(id);return id;
+}
+function renderEditor(){
+  const box=$('#editBox');
+  if(editorSel.kind==='action'&&config.actions[editorSel.id])return renderActionEditor(box,editorSel.id);
+  if(!config.questions[editorSel.id])editorSel={kind:'question',id:config.root};
+  const id=editorSel.id;const q=config.questions[id];
+  const isRoot=id===config.root;
+  box.innerHTML=`<div id="cfgWarn"></div>
+    <div class="row" style="justify-content:space-between"><h3 class="jua" style="font-size:19px">❓ 질문 편집 ${isRoot?'<span class="tbadge">첫 질문</span>':''}</h3><span class="hint">id: ${esc(id)}</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label class="f">한국어 이름 (화면용)</label><input type="text" id="eqLabel" value="${esc(q.label)}"></div>
+      <div><label class="f">담당 캐릭터 이름</label><input type="text" id="eqWho" value="${esc(q.who)}"></div>
+      <div><label class="f">질문 유형</label><select id="eqType"><option value="choice">선택형 (choice)</option><option value="noul">예/아니오 (noul)</option><option value="score">점수형 (score)</option></select></div>
+      <div><label class="f">이 질문만의 대표 호출 기준 (비우면 전체 ${settings.threshold.toFixed(2)})</label><input type="number" id="eqMin" min="0" max="1" step="0.05" value="${q.minConf??''}" placeholder="${settings.threshold.toFixed(2)}"></div>
+    </div>
+    <label class="f">AI에게 보낼 영어 지시문 (instructions) — 모델은 영어에서 가장 정확해요</label>
+    <textarea id="eqInst" rows="2">${esc(q.instructions)}</textarea>
+    ${q.type==='noul'?`<label class="f">“예”로 볼 기준: <b id="eqYtV">${pct(q.yesThreshold)}</b> (예 확률이 이 값 이상이면 예)</label><input type="range" id="eqYt" min="0.05" max="0.95" step="0.05" value="${q.yesThreshold}" style="width:100%">`:''}
+    <label class="f">${q.type==='choice'?'보기 (영문 키는 AI 응답의 choice 값이에요)':q.type==='score'?'단계 (위에서부터 0, 1, 2 … 단계 · score는 단계의 확률 가중 평균)':'답'}</label>
+    <table class="opt-table"><thead><tr><th>한국어 라벨</th>${q.type==='choice'?'<th style="width:110px">영문 키</th>':''}${q.type!=='noul'?'<th>영어 기준 (criteria)</th>':''}<th style="width:170px">그러면 → 다음</th><th></th></tr></thead>
+    <tbody>${q.options.map((o,i)=>`<tr data-i="${i}"><td><input type="text" class="oLabel" value="${esc(o.label)}"></td>
+      ${q.type==='choice'?`<td><input type="text" class="oKey" value="${esc(o.key)}"></td>`:''}
+      ${q.type!=='noul'?`<td><input type="text" class="oCrit" value="${esc(o.criteria||'')}"></td>`:''}
+      <td><select class="oNext">${nextOptionsHTML(o.next,id)}</select></td>
+      <td>${q.type!=='noul'?`<button class="btn sm danger oDel" ${q.options.length<=2?'disabled':''} title="삭제">🗑</button>`:''}</td></tr>`).join('')}</tbody></table>
+    <div class="row" style="margin-top:8px">
+      ${q.type!=='noul'?`<button class="btn sm" id="eqAddOpt" ${q.options.length>=26?'disabled':''}>➕ 보기 추가</button>`:''}
+      <div style="flex:1"></div>
+      ${!isRoot?'<button class="btn sm gold" id="eqRoot">⭐ 첫 질문으로</button>':''}
+      <button class="btn sm danger" id="eqDel" ${qList().length<=1?'disabled':''}>🗑 질문 삭제</button>
+    </div>
+    <p class="legend">💡 답이 정해진 뒤 갈 곳을 고르세요. “새 업무 만들기”를 고르면 사무실에 책상과 직원이 바로 생겨요. 어떤 단계든 확신도가 기준보다 낮으면 👑 대표에게 갑니다.</p>`;
+  $('#eqType').value=q.type;
+  const u=(fn,structural)=>{fn();onConfigChanged(structural)};
+  $('#eqLabel').oninput=e=>u(()=>q.label=e.target.value||'질문');
+  $('#eqWho').oninput=e=>u(()=>q.who=e.target.value||'분석이');
+  $('#eqInst').oninput=e=>u(()=>q.instructions=e.target.value);
+  $('#eqMin').oninput=e=>u(()=>q.minConf=e.target.value===''?null:clamp(+e.target.value,0,1));
+  if($('#eqYt'))$('#eqYt').oninput=e=>{q.yesThreshold=+e.target.value;$('#eqYtV').textContent=pct(q.yesThreshold);onConfigChanged()};
+  $('#eqType').onchange=e=>{const t=e.target.value;if(t===q.type)return;
+    if(!confirm('유형을 바꾸면 보기 목록이 새로 만들어져요. 계속할까요?')){e.target.value=q.type;return}
+    q.type=t;
+    if(t==='noul'){q.options=[{key:'yes',label:'예',next:null},{key:'no',label:'아니오',next:null}];q.yesThreshold=0.7}
+    else if(t==='score')q.options=[{key:'0',label:'낮음',criteria:'Low',next:null},{key:'1',label:'보통',criteria:'Medium',next:null},{key:'2',label:'높음',criteria:'High',next:null}];
+    else q.options=[{key:'option_a',label:'보기 A',criteria:'Option A',next:null},{key:'option_b',label:'보기 B',criteria:'Option B',next:null}];
+    onConfigChanged();renderEditor()};
+  $$('#editBox tr[data-i]').forEach(tr=>{const o=q.options[+tr.dataset.i];
+    $('.oLabel',tr).oninput=e=>u(()=>o.label=e.target.value);
+    if($('.oKey',tr))$('.oKey',tr).oninput=e=>u(()=>o.key=e.target.value.trim());
+    if($('.oCrit',tr))$('.oCrit',tr).oninput=e=>u(()=>o.criteria=e.target.value);
+    $('.oNext',tr).onchange=e=>{const v=e.target.value;
+      if(v==='ceo')o.next=null;
+      else if(v==='new_a'){const aid=createAction();o.next=N('action',aid);onConfigChanged(true);editorSel={kind:'action',id:aid};renderTree();renderEditor();return}
+      else if(v==='new_q'){const nq=createQuestion();o.next=N('question',nq);onConfigChanged(true);editorSel={kind:'question',id:nq};renderTree();renderEditor();return}
+      else o.next=N(v.startsWith('q:')?'question':'action',v.slice(2));
+      onConfigChanged()};
+    const d=$('.oDel',tr);if(d)d.onclick=()=>{q.options.splice(+tr.dataset.i,1);if(q.type==='score')q.options.forEach((x,i)=>x.key=String(i));onConfigChanged();renderEditor()};
+  });
+  if($('#eqAddOpt'))$('#eqAddOpt').onclick=()=>{const n=q.options.length;
+    q.options.push(q.type==='score'?{key:String(n),label:`${n}단계`,criteria:`Level ${n}`,next:null}:{key:'option_'+String.fromCharCode(97+n),label:'새 보기',criteria:'Describe in English',next:null});onConfigChanged();renderEditor()};
+  if($('#eqRoot'))$('#eqRoot').onclick=()=>{config.root=id;onConfigChanged();renderEditor()};
+  $('#eqDel').onclick=()=>{if(!confirm(`“${q.label}” 질문을 삭제할까요? 이 질문으로 가던 답은 👑 대표에게 가게 돼요.`))return;
+    delete config.questions[id];config.order=config.order.filter(x=>x!==id);
+    qList().forEach(k=>config.questions[k].options.forEach(o=>{if(o.next?.kind==='question'&&o.next.id===id)o.next=null}));
+    if(config.root===id)config.root=qList()[0];editorSel={kind:'question',id:config.root};onConfigChanged(true);renderEditor()};
+  onConfigChanged();
+}
+function renderActionEditor(box,id){
+  const a=config.actions[id];
+  const users=[];qList().forEach(qid=>config.questions[qid].options.forEach(o=>{if(o.next?.kind==='action'&&o.next.id===id)users.push(`${config.questions[qid].label} → ${o.label}`)}));
+  box.innerHTML=`<div id="cfgWarn"></div>
+    <div class="row" style="justify-content:space-between"><h3 class="jua" style="font-size:19px">🧑‍💼 업무(액션) 편집</h3><span class="hint">id: ${esc(id)}</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div><label class="f">업무 이름</label><input type="text" id="eaName" value="${esc(a.name)}"></div>
+      <div><label class="f">부서</label><input type="text" id="eaDept" value="${esc(a.dept)}"></div>
+      <div><label class="f">담당 캐릭터 이름</label><input type="text" id="eaWho" value="${esc(a.who)}"></div>
+      <div><label class="f">할 일 종류</label><select id="eaTask">${Object.entries(TASK_KO).map(([k,v])=>`<option value="${k}" ${a.task===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label class="f">배정 대상 (담당자 배정일 때)</label><input type="text" id="eaAssg" value="${esc(a.assignee)}" placeholder="예: 개발 외주"></div>
+      <div><label class="f">옷 색 · 소품</label><div class="row"><input type="color" id="eaColor" value="${esc(a.color)}" style="width:52px;height:34px;padding:0;border:2px solid #2b2340;border-radius:5px"><select id="eaAcc" style="flex:1">${ACCS.map(x=>`<option ${a.acc===x?'selected':''}>${x}</option>`).join('')}</select></div></div>
+    </div>
+    <label class="f">답장 초안 템플릿 (한국어 · {고객명}, {제목} 사용 가능) — 작업 중 말풍선에 표시돼요</label>
+    <textarea id="eaTpl" rows="3">${esc(a.template)}</textarea>
+    <p class="legend">이 업무로 오는 길: ${users.length?users.map(esc).join(' · '):'<b>아직 없음</b> (질문의 보기에서 이 업무를 골라 연결하세요)'}</p>
+    <div class="row"><div style="flex:1"></div><button class="btn sm danger" id="eaDel" ${aList().length<=1?'disabled':''}>🗑 업무 삭제 (직원 퇴사)</button></div>`;
+  const u=(fn,s)=>{fn();onConfigChanged(s)};
+  $('#eaName').oninput=e=>u(()=>a.name=e.target.value||'업무');
+  $('#eaDept').oninput=e=>u(()=>a.dept=e.target.value);
+  $('#eaWho').oninput=e=>u(()=>a.who=e.target.value||'직원');
+  $('#eaTask').onchange=e=>u(()=>a.task=e.target.value);
+  $('#eaAssg').oninput=e=>u(()=>a.assignee=e.target.value);
+  $('#eaTpl').oninput=e=>u(()=>a.template=e.target.value);
+  $('#eaColor').oninput=e=>u(()=>a.color=e.target.value,true);
+  $('#eaAcc').onchange=e=>u(()=>a.acc=e.target.value,true);
+  $('#eaDel').onclick=()=>{if(!confirm(`“${a.name}” 업무를 삭제할까요? ${a.who}가 퇴사하고, 이 업무로 가던 답은 👑 대표에게 가요.`))return;
+    delete config.actions[id];config.actionOrder=config.actionOrder.filter(x=>x!==id);
+    qList().forEach(k=>config.questions[k].options.forEach(o=>{if(o.next?.kind==='action'&&o.next.id===id)o.next=null}));
+    editorSel={kind:'question',id:config.root};toast(`👋 ${esc(a.who)} 퇴사…`);onConfigChanged(true);renderEditor()};
+  onConfigChanged();
+}
+
+/* =========================================================
+   기록
+   ========================================================= */
+function renderLog(){
+  const rows=logEntries.slice(0,250).map(e=>{
+    const minC=e.path.length?Math.min(...e.path.map(s=>s.conf)):null;
+    const a=config.actions[e.finalAction];
+    const status={ceo_wait:'<span class="tag wait">👑 결재 대기</span>',report_wait:'<span class="tag ceo">📄 보고 대기</span>',working:'⏳ 작업 중',routing:'📮 이동 중',done:''}[e.status]||'';
+    const fbSel=e.feedback==='down'?`<select class="fbSel" data-id="${e.id}"><option value="">올바른 업무는?</option>${aList().map(id=>`<option value="${id}" ${e.correctAction===id?'selected':''}>${esc(config.actions[id].name)}</option>`).join('')}</select>`:'';
+    return `<tr data-id="${e.id}" class="${e.id===selectedEntryId?'sel':''}">
+      <td>${fmtTime(e.t)}<br>${e.demo?'<span class="tag demo">체험</span>':''}</td>
+      <td><b>${esc(e.msg.sender)}</b> · ${esc(e.msg.subject)}<div class="muted" style="max-height:36px;overflow:hidden" title="${esc(e.msg.body)}">${esc(e.msg.body.slice(0,60))}${e.msg.body.length>60?'…':''}</div></td>
+      <td>${e.path.map(s=>{const pr=s.type==='noul'?s.p:s.opts.find(o=>o.key===s.key)?.prob;const det=s.opts.map(o=>`${o.label} ${pct(o.prob,1)}`).join(' / ');return `<span class="ans-chip ${s.low?'low':''}" title="${esc(det)}">${esc(s.label)}: <b>${esc(s.keyLabel)}</b> ${pct(pr,0)}</span>`}).join('')}</td>
+      <td>${minC==null?'–':`<span class="mini-conf"><i style="width:${minC*100}%;background:${confColor(minC)}"></i></span>${minC.toFixed(2)}`}</td>
+      <td>${a?`${e.decidedBy==='ceo'?'<span class="tag ceo">👑 대표</span> ':''}<b>${esc(a.name)}</b>`:'–'} ${status}${e.ceoApproval?`<br><small>${e.ceoApproval==='approved'?'✅ 승인':'❌ 반려'}</small>`:''}</td>
+      <td>${e.ms}ms</td>
+      <td><div class="fb"><button class="btn sm ${e.feedback==='up'?'on-up':''}" data-fb="up" data-id="${e.id}">👍</button><button class="btn sm ${e.feedback==='down'?'on-down':''}" data-fb="down" data-id="${e.id}">👎</button>${fbSel}</div></td></tr>`}).join('');
+  $('#logBody').innerHTML=rows||'<tr><td colspan="7" style="text-align:center;padding:24px" class="muted">아직 기록이 없어요.</td></tr>';
+  $$('#logBody tr[data-id]').forEach(tr=>tr.onclick=ev=>{if(ev.target.closest('.fb'))return;const e=logEntries.find(x=>x.id===tr.dataset.id);selectedEntryId=e.id;renderPanel(e,99);renderLog();renderTree()});
+  $$('#logBody [data-fb]').forEach(b=>b.onclick=()=>{const e=logEntries.find(x=>x.id===b.dataset.id);const v=b.dataset.fb;
+    if(e.feedback===v){e.feedback=null;e.correctAction=null}else{e.feedback=v;e.correctAction=v==='up'?e.finalAction:null}
+    saveLog();renderLog();updateStats()});
+  $$('#logBody .fbSel').forEach(s=>s.onchange=()=>{const e=logEntries.find(x=>x.id===s.dataset.id);e.correctAction=s.value||null;saveLog();toast('📝 올바른 업무를 기록했어요')});
+}
+let shownStats={done:0,time:0};
+function animNum(el,from,to,fmt){const t0=performance.now();const step=now=>{const k=clamp((now-t0)/600,0,1);el.innerHTML=fmt(from+(to-from)*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function updateStats(){
+  const done=logEntries.filter(e=>e.status==='done'||e.status==='report_wait').length;
+  const ms=logEntries.filter(e=>e.ms!=null);const avg=ms.length?ms.reduce((a,e)=>a+e.ms,0)/ms.length/1000:0;
+  if(done!==shownStats.done){animNum($('#stDone'),shownStats.done,done,v=>Math.round(v)+'<small>건</small>');shownStats.done=done}
+  if(Math.abs(avg-shownStats.time)>0.0005){animNum($('#stTime'),shownStats.time,avg,v=>v.toFixed(2)+'<small>초</small>');shownStats.time=avg}
+  const pend=ceoPending().length;$('#stCeo').innerHTML=pend+'<small>건</small>';$('#stCeoBox').classList.toggle('pulse',logEntries.some(e=>e.status==='ceo_wait'));
+  const up=logEntries.filter(e=>e.feedback==='up').length,down=logEntries.filter(e=>e.feedback==='down').length;
+  const acc=up+down?Math.round(up/(up+down)*100)+'<small>%</small>':'–';
+  $('#stAcc').innerHTML=acc;$('#accRated').textContent=up+down;$('#accUp').textContent=up;$('#accDown').textContent=down;$('#accPct').innerHTML=acc;
+}
+
+/* =========================================================
+   설계 이유
+   ========================================================= */
+function renderWhy(){
+  $('#whyBox').innerHTML=`
+  <div class="card"><h4>1️⃣ 첫 질문은 “어느 부서?”</h4><p>사주 웹서비스 문의는 거의 다 <b>결제·환불 / 리포트 / 상담·추천 / 기술 / 기타·제휴</b> 다섯 갈래예요. 가장 크게 갈리는 질문을 맨 앞에 두면 뒤의 질문이 짧고 정확해져요. (전문가가 메일을 열면 제일 먼저 “이거 누구 일이지?”부터 보죠.)</p></div>
+  <div class="card"><h4>2️⃣ 돈 문제는 “명시적 환불 요청?”을 따로</h4><p>결제 문의라도 <b>환불을 직접 요청했는지</b>가 처리 방식을 완전히 바꿔요. 예/아니오 질문으로 분리했고, “예” 기준을 <b>70%</b>로 높게 잡아 애매한 말투(“환불 되나요?”)는 함부로 환불로 보지 않아요.</p></div>
+  <div class="card"><h4>3️⃣ 환불보다 “무료 재발급”이 먼저</h4><p>사주 리포트는 디지털 콘텐츠라, <b>출생시간·양음력 입력 실수</b>나 <b>미수신</b>은 환불보다 <b>정보 수정 후 재발급</b>이 고객도 만족하고 매출도 지켜요. 그래서 환불 사유가 이 둘이면 만세력팀/배송팀으로 보내요. 이중결제는 즉시 환불.</p></div>
+  <div class="card"><h4>4️⃣ 사주 서비스만의 “만세력팀”</h4><p>“음력인데 양력으로 넣었어요”, “태어난 시간을 모르는데요”는 사주 서비스 최다 문의예요. 양력/음력 혼동(설명이 필요)과 생년월일·시간 수정(재계산이 필요)을 <b>따로</b> 나눠 답장 초안이 정확해지게 했어요.</p></div>
+  <div class="card"><h4>5️⃣ 해석 불만은 “감정 온도”로</h4><p>같은 불만도 <b>차분 → 해석 상담</b>, <b>실망 → 불만 케어(보완 해석)</b>, <b>매우 화남 → 환불 검토를 대표 결재</b>로. 해석 불만 환불은 회사 정책 판단이라 AI가 혼자 결정하지 않게 했어요.</p></div>
+  <div class="card"><h4>6️⃣ 기술 문제는 “매출에 닿는가?”</h4><p>결제 불가·리포트 열람 불가는 바로 매출 손실이라 <b>긴급 장애 대응</b>(개발 긴급 호출 + 대표 알림). 그 외는 버그 접수로 모아서 처리해요.</p></div>
+  <div class="card"><h4>7️⃣ 제휴는 대표만</h4><p>제휴·협업은 회사의 방향을 바꾸는 결정이라 비서실이 요약만 하고 <b>대표 보고</b>로 올려요. 제휴도 아닌 기타 메시지는 보류함에.</p></div>
+  <div class="card"><h4>8️⃣ 모르면 대표에게 (확신도 &lt; 0.5)</h4><p>“시간을 잘못 넣은 것 같아요. 다시 봐주시거나 환불해주세요”처럼 <b>두 가지를 동시에 요구</b>하는 메시지는 AI 확신도가 낮게 나와요. 어느 단계든 기준보다 낮으면 멈추고 👑 대표에게 넘겨요. 질문마다 기준을 따로 둘 수도 있어요.</p></div>
+  <div class="card"><h4>9️⃣ 한 번의 호출, 경로는 브라우저가</h4><p>질문들을 <b>한 번의 요청</b>으로 로컬 AI에 보내고(영어 지시문 — 모델이 영어에서 가장 정확), 받은 답으로 브라우저가 트리를 따라가요. 그래서 빠르고, 비용은 <b>₩0</b>, 고객 정보는 내 컴퓨터 밖으로 나가지 않아요.</p></div>
+  <div class="card"><h4>🔟 👍/👎로 회사가 똑똑해져요</h4><p>틀린 판단에 올바른 업무를 표시해 두면, JSON으로 내보내 나중에 모델을 다시 학습시키거나 질문 문장을 고치는 근거가 돼요. 정확도가 오르면 대표 호출 기준을 조금씩 낮춰 AI에게 더 맡기면 돼요.</p></div>`;
+}
+
+/* =========================================================
+   모달 / 탭 / 설정 / 입력
+   ========================================================= */
+function openModal(html){$('#modal').innerHTML=html;$('#modalBg').classList.add('show');$$('#modal [data-close]').forEach(b=>b.onclick=closeModal)}
+function closeModal(){$('#modalBg').classList.remove('show')}
+$('#modalBg').onclick=e=>{if(e.target.id==='modalBg')closeModal()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('on',x===t));$$('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+t.dataset.tab));if(t.dataset.tab==='tree'){renderTree();renderEditor()}});
+function openTab(name){$$('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===name));$$('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='pane-'+name))}
+
+function setDemo(on){
+  settings.demo=on;saveSettings();document.body.classList.toggle('demo',on);
+  $('#toggleDemo').textContent=on?'🤖 실제 AI 모드로':'🧪 체험 모드 켜기';
+  if(on){$('#connBanner').classList.remove('show');toast('🧪 체험 모드: 키워드 규칙이에요. 실제 AI 판단이 아니에요!',3500);runPipeline()}
+  else{toast('🤖 실제 로컬 AI 모드');checkConnection()}
+}
+$('#modelSel').value=settings.model;
+$('#modelSel').onchange=e=>{settings.model=e.target.value;saveSettings();checkConnection(true);toast(`🤖 모델: ${esc(settings.model)}`)};
+$('#speedSel').value=String(settings.speed);$('#speedSel').onchange=e=>{settings.speed=+e.target.value;saveSettings()};
+$('#autoInt').value=String(settings.autoInterval);$('#autoInt').onchange=e=>{settings.autoInterval=+e.target.value;saveSettings();if(autoTimer){stopAuto();startAuto()}};
+$('#setUrl').value=settings.baseUrl;$('#setUrl').onchange=e=>{settings.baseUrl=e.target.value.trim()||DEFAULT_SETTINGS.baseUrl;saveSettings();checkConnection()};
+$('#setThr').value=settings.threshold;$('#thrVal').textContent=settings.threshold.toFixed(2);
+$('#setThr').oninput=e=>{settings.threshold=+e.target.value;$('#thrVal').textContent=settings.threshold.toFixed(2);$('#dpThresh').innerHTML=`대표 호출 기준 &lt; ${settings.threshold.toFixed(2)}`;saveSettings()};
+$('#checkConn').onclick=()=>checkConnection();$('#connPill').onclick=()=>checkConnection();
+$('#toggleDemo').onclick=()=>setDemo(!settings.demo);
+$('#guideBtn').onclick=()=>showGuide('','');
+$('#bannerRetry').onclick=retry;$('#bannerGuide').onclick=()=>showGuide('','');$('#bannerDemo').onclick=()=>setDemo(true);
+$('#exportCfg').onclick=()=>download('saju-company-config.json',{type:'saju-ai-company-config',exportedAt:new Date().toISOString(),settings:{model:settings.model,threshold:settings.threshold},config});
+$('#importCfgBtn').onclick=()=>$('#importCfg').click();
+$('#importCfg').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());const c=j.config||j;
+  if(!c.questions||!c.actions)throw new Error('questions/actions가 없어요');config=normalizeConfig(c);
+  if(j.settings?.threshold!=null){settings.threshold=+j.settings.threshold;$('#setThr').value=settings.threshold;$('#thrVal').textContent=settings.threshold.toFixed(2);saveSettings()}
+  saveConfig();editorSel={kind:'question',id:config.root};syncWorld(true);renderTree();renderEditor();toast('✅ 설정을 가져왔어요')}catch(err){toast('⚠️ 가져오기 실패: '+esc(err.message),4000)}e.target.value=''};
+$('#resetCfg').onclick=()=>{if(!confirm('질문·업무 설계를 처음 상태로 되돌릴까요? (기록은 남아요)'))return;config=normalizeConfig(clone(DEFAULT_CONFIG));saveConfig();editorSel={kind:'question',id:config.root};syncWorld(true);renderTree();renderEditor();toast('↩️ 처음 설계로 되돌렸어요')};
+$('#previewReq').onclick=()=>{const r=buildRequest({sender:'김민지',subject:'(미리보기)',body:'(고객 메시지 본문)'});const s=JSON.stringify(r,null,2);
+  openModal(`<h3>📦 POST ${esc(settings.baseUrl)}/v1/systemone</h3><p class="hint">크기 ${(new Blob([JSON.stringify(r)]).size/1024).toFixed(1)}KB / 64KB · 질문 ${Object.keys(r.questions).length}개</p><pre style="background:#2b2340;color:#ffe9a8;padding:10px;border-radius:6px;max-height:60vh;overflow:auto;font-size:12px">${esc(s)}</pre><div class="row" style="justify-content:flex-end"><button class="btn" data-close>닫기</button></div>`)};
+$('#exportLog').onclick=()=>download(`saju-company-log-${new Date().toISOString().slice(0,10)}.json`,{
+  type:'saju-ai-company-decision-log',exportedAt:new Date().toISOString(),model:settings.model,threshold:settings.threshold,
+  questions:buildQuestions(),actions:Object.fromEntries(aList().map(id=>[id,{name:config.actions[id].name,dept:config.actions[id].dept,task:config.actions[id].task}])),
+  stats:{total:logEntries.length,rated:logEntries.filter(e=>e.feedback).length,correct:logEntries.filter(e=>e.feedback==='up').length},
+  entries:logEntries.map(e=>({id:e.id,time:new Date(e.t).toISOString(),demo:e.demo,model:e.model,state:e.msg,answers:e.answers,usage:e.usage,decisionMs:e.ms,
+    path:e.path.map(s=>({question:s.qid,label:s.label,type:s.type,answer:s.key,answerLabel:s.keyLabel,confidence:s.conf,probabilities:Object.fromEntries(s.opts.map(o=>[o.key,o.prob])),score:s.score,noul:s.p,belowThreshold:s.low})),
+    outcome:e.outcome,finalAction:e.finalAction,decidedBy:e.decidedBy,status:e.status,feedback:e.feedback,correctAction:e.correctAction,ceoApproval:e.ceoApproval||null,draft:e.draft}))});
+$('#clearLog').onclick=()=>{if(!confirm('판단 기록을 모두 지울까요? (대표 결재 대기 중인 편지도 사라져요)'))return;logEntries=[];saveLog();selectedEntryId=null;renderLog();renderPanel(null);renderCEO();renderTree();updateStats()};
+$('#addQ').onclick=()=>{const id=createQuestion();editorSel={kind:'question',id};onConfigChanged(true);renderEditor();toast('❓ 새 질문 담당이 들어왔어요. 다른 질문의 보기에서 연결해 주세요!',3500)};
+$('#addA').onclick=()=>{const id=createAction();editorSel={kind:'action',id};onConfigChanged(true);renderEditor()};
+
+// 보내기
+const sendNow=()=>{enqueue({sender:$('#inSender').value,subject:$('#inSubject').value,body:$('#inBody').value});if($('#inBody').value.trim()){$('#inBody').value='';$('#inSubject').value=''}};
+$('#sendBtn').onclick=sendNow;
+$('#inBody').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();sendNow()}});
+$('#examples').innerHTML=EXAMPLES.map((x,i)=>`<span class="ex" data-i="${i}" title="${esc(x.body)}">${i+1}. ${esc(x.subject)}${x.amb?'<span class="amb">애매</span>':''}</span>`).join('');
+$$('#examples .ex').forEach(el=>el.onclick=()=>{const x=EXAMPLES[+el.dataset.i];$('#inSender').value=x.sender;$('#inSubject').value=x.subject;$('#inBody').value=x.body;enqueue(x);$('#inBody').value='';$('#inSubject').value=''});
+let autoTimer=null,autoIdx=0;
+function startAuto(){const tick=()=>{if(inbox.length<2&&!pipelinePaused){enqueue(EXAMPLES[autoIdx%EXAMPLES.length]);autoIdx++}};tick();autoTimer=setInterval(tick,settings.autoInterval*1000);$('#autoBtn').textContent='⏸ 자동 실행 멈춤';$('#autoBtn').classList.add('auto-on')}
+function stopAuto(){if(autoTimer)clearInterval(autoTimer);autoTimer=null;$('#autoBtn').textContent='▶ 자동 실행';$('#autoBtn').classList.remove('auto-on')}
+$('#autoBtn').onclick=()=>autoTimer?stopAuto():startAuto();
+
+// 캔버스 클릭 → 해당 설정 열기
+cv.addEventListener('click',ev=>{
+  const r=cv.getBoundingClientRect();const x=(ev.clientX-r.left)/r.width*W,y=(ev.clientY-r.top)/r.height*H;
+  let best=null,bd=14;for(const k in chars){const c=chars[k];const d=Math.hypot(c.x-x,c.y-10-y);if(d<bd){bd=d;best=c}}
+  if(!best)return;
+  if(best.kind==='ceo'){const p=ceoPending();if(p.length)openCEO(p[p.length-1].id);else{bubble(best,'👑 오늘도 화이팅!',1500,'ceo');happy(best)}return}
+  happy(best,700);hearts(best.x,best.y-20,2);
+  editorSel={kind:best.kind==='q'?'question':'action',id:best.refId};openTab('tree');renderTree();renderEditor();
+  $('#tabs').scrollIntoView({behavior:'smooth',block:'start'});
+});
+new ResizeObserver(()=>{resize()}).observe($('#holder'));
+
+/* =========================================================
+   시작
+   ========================================================= */
+document.body.classList.toggle('demo',!!settings.demo);
+$('#toggleDemo').textContent=settings.demo?'🤖 실제 AI 모드로':'🧪 체험 모드 켜기';
+syncWorld(false);
+renderWhy();renderLog();renderCEO();renderTree();renderEditor();updateStats();
+if(logEntries[0]){selectedEntryId=logEntries[0].id;renderPanel(logEntries[0],99)}
+requestAnimationFrame(frame);
+checkConnection(true).then(()=>{if(!conn.ok&&!settings.demo){$('#connBannerText').innerHTML='Ollama를 켜고 <code>ollama pull tev1:0.8b</code> 후 “다시 시도”를 눌러 주세요.';$('#connBanner').classList.add('show')}});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{});
+</script>
+</body>
+</html>
