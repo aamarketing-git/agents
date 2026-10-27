@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>결제 실패</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:linear-gradient(160deg,#e8f8e0,#e3f2fd 50%,#f3e5f5);min-height:100vh;color:#2e3a3f}
+.wrap{max-width:560px;margin:0 auto;padding:40px 16px}
+.card{background:#fff;border-radius:18px;padding:28px 22px;box-shadow:0 6px 24px rgba(0,0,0,.08);text-align:center}
+.ico{font-size:3.6rem;margin-bottom:8px}
+h2{color:#c62828;font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.sub{color:#607d8b;font-size:.92rem;margin-bottom:8px;line-height:1.6}
+.reason{background:#fff3e0;border:1px solid #ffcc80;border-radius:10px;padding:12px;font-size:.85rem;color:#5d4037;margin:16px 0}
+.btns{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.btn{padding:14px;border-radius:50px;font-size:1rem;font-weight:700;text-decoration:none;display:block}
+.btn-main{background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff}
+.btn-sub{background:#eceff1;color:#455a64}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="ico">❌</div>
+    <h2>결제가 완료되지 않았습니다</h2>
+    <p class="sub">결제가 취소되었거나 실패했습니다.<br>다시 시도해주세요.</p>
+    <div class="reason" id="reason"></div>
+    <div class="btns">
+      <a class="btn btn-main" href="index.html">다시 주문하기</a>
+      <a class="btn btn-sub" href="order-status.html">내 주문 조회</a>
+    </div>
+  </div>
+</div>
+<script>
+function qp(k){ return new URLSearchParams(location.search).get(k); }
+function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+var code=qp('code'), msg=qp('message');
+var box=document.getElementById('reason');
+if(msg){ box.innerHTML='사유: '+esc(msg)+(code?(' ('+esc(code)+')'):''); }
+else { box.style.display='none'; }
+</script>
+</body>
+</html>

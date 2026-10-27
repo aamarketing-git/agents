@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>주문하기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- 토스페이먼츠 결제 SDK (v2) -->
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<!-- 다음(카카오) 우편번호 -->
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:linear-gradient(160deg,#e8f8e0,#e3f2fd 50%,#f3e5f5);min-height:100vh;color:#2e3a3f}
+.wrap{max-width:600px;margin:0 auto;padding:20px 16px 120px}
+.header{text-align:center;margin-bottom:22px}
+.header h1{font-size:1.5rem;font-weight:700;color:#43a047}
+.header p{color:#607d8b;font-size:.85rem;margin-top:4px}
+.header-link{margin-top:12px}
+.header-link a{color:#43a047;text-decoration:none;font-size:.85rem;padding:8px 18px;border:2px solid #43a047;border-radius:25px;font-weight:500}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:16px}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #e8f5e9;display:flex;align-items:center;gap:8px}
+.form-row{display:flex;gap:10px;margin-bottom:12px}
+.form-group{flex:1;display:flex;flex-direction:column;min-width:0}
+.form-group label{font-size:.75rem;font-weight:600;margin-bottom:6px}
+.form-group label .req{color:#e53935}
+.form-group input,.form-group textarea{font-family:inherit;font-size:15px;padding:11px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fafafa;outline:none;width:100%}
+.form-group input:focus,.form-group textarea:focus{border-color:#43a047;background:#fff}
+.btn-addr{padding:11px 14px;background:#607d8b;color:#fff;border:none;border-radius:10px;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap}
+/* 상품 */
+.prod{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f0}
+.prod:last-child{border-bottom:none}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-weight:700;font-size:.95rem}
+.prod-desc{font-size:.78rem;color:#90a4ae;margin-top:3px}
+.prod-price{font-size:.9rem;color:#43a047;font-weight:600;margin-top:4px}
+.stepper{display:flex;align-items:center;gap:0;flex-shrink:0}
+.stepper button{width:34px;height:34px;border:1.5px solid #c8e6c9;background:#f1f8e9;color:#2e7d32;font-size:1.2rem;font-weight:700;border-radius:8px;cursor:pointer;line-height:1}
+.stepper .qty{width:42px;text-align:center;font-size:1rem;font-weight:700;border:none;background:transparent}
+.prod-sub{font-size:.8rem;color:#607d8b;text-align:right;min-width:72px;flex-shrink:0}
+.empty-prod{text-align:center;color:#90a4ae;padding:20px;font-size:.9rem}
+/* 합계 바 */
+.paybar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;box-shadow:0 -4px 20px rgba(0,0,0,.08);padding:14px 16px;z-index:100}
+.paybar-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.paybar-total{flex:1}
+.paybar-total .lbl{font-size:.75rem;color:#90a4ae}
+.paybar-total .amt{font-size:1.4rem;font-weight:800;color:#2e7d32}
+.btn-pay{padding:15px 28px;background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;border:none;border-radius:50px;font-size:1.05rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-pay:disabled{opacity:.5;cursor:not-allowed}
+.summary-row{display:flex;justify-content:space-between;padding:8px 0;font-size:.9rem;border-bottom:1px solid #f5f5f5}
+.summary-row:last-child{border-bottom:none}
+.summary-row.total{font-weight:800;color:#2e7d32;font-size:1.05rem;padding-top:12px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:12px 24px;border-radius:50px;font-size:.85rem;z-index:3000;display:none;max-width:90%;text-align:center}
+.loading-ov{position:fixed;inset:0;background:rgba(255,255,255,.85);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:2000}
+.spin{width:44px;height:44px;border:4px solid #e0e0e0;border-top-color:#43a047;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1 id="shopName">OO상점 주문하기</h1>
+    <p>아래 정보를 입력하고 바로 결제하세요</p>
+    <div class="header-link"><a href="order-status.html">📋 내 주문 조회하기</a></div>
+  </div>
+
+  <!-- 상품 -->
+  <div class="card">
+    <div class="card-title">🛒 상품 선택</div>
+    <div id="prodList"><div class="empty-prod">상품을 불러오는 중…</div></div>
+  </div>
+
+  <!-- 주문자 정보 -->
+  <div class="card">
+    <div class="card-title">🧾 주문자 정보</div>
+    <div class="form-row">
+      <div class="form-group"><label>주문자명 <span class="req">*</span></label><input id="ordererName" placeholder="홍길동"></div>
+      <div class="form-group"><label>연락처 <span class="req">*</span></label><input id="ordererPhone" placeholder="010-1234-5678" inputmode="numeric"></div>
+    </div>
+    <label style="font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px;margin:4px 0 10px">
+      <input type="checkbox" id="sameAsOrderer" checked style="width:auto"> 받는 분이 주문자와 동일
+    </label>
+    <div id="recvBox" style="display:none">
+      <div class="form-row">
+        <div class="form-group"><label>받는 분</label><input id="receiverName" placeholder="받는 분 성함"></div>
+        <div class="form-group"><label>받는 분 연락처</label><input id="receiverPhone" placeholder="010-0000-0000" inputmode="numeric"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>우편번호</label><input id="zipcode" placeholder="우편번호" readonly></div>
+      <div class="form-group" style="flex:0 0 auto;justify-content:flex-end"><button class="btn-addr" onclick="findAddr()">주소 찾기</button></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label>주소 <span class="req">*</span></label><input id="addr" placeholder="기본 주소" readonly></div>
+    <div class="form-group" style="margin-bottom:12px"><label>상세주소</label><input id="addrDetail" placeholder="동/호수 등"></div>
+    <div class="form-group"><label>배송 요청사항</label><input id="memo" placeholder="예) 부재시 경비실"></div>
+  </div>
+
+  <!-- 결제 요약 -->
+  <div class="card">
+    <div class="card-title">💳 결제 요약</div>
+    <div id="summary"><div class="summary-row"><span>선택한 상품이 없습니다</span><span></span></div></div>
+  </div>
+
+  <p style="font-size:.72rem;color:#90a4ae;text-align:center;line-height:1.6">
+    결제는 토스페이먼츠로 안전하게 진행됩니다.<br>결제 완료 후 주문이 접수되며, '내 주문 조회'에서 확인할 수 있습니다.
+  </p>
+</div>
+
+<!-- 하단 결제 바 -->
+<div class="paybar">
+  <div class="paybar-inner">
+    <div class="paybar-total">
+      <div class="lbl">총 결제금액</div>
+      <div class="amt"><span id="barTotal">0</span>원</div>
+    </div>
+    <button class="btn-pay" id="payBtn" onclick="startPayment()" disabled>결제하기</button>
+  </div>
+</div>
+
+<div class="loading-ov" id="loadingOv"><div class="spin"></div><div id="loadingMsg">처리 중…</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== 설정 ===================== */
+// 1) Apps Script 웹앱 배포 URL (…/exec)
+var API_URL = 'https://script.google.com/macros/s/여기에_배포URL/exec';
+// 2) 토스 '테스트' 클라이언트 키 (test_ck_...) — 개발자센터 > API 키 > 테스트
+var TOSS_CLIENT_KEY = 'test_ck_여기에_테스트_클라이언트키';
+// 3) 상점 이름
+var SHOP_NAME = 'OO상점';
+/* ================================================ */
+
+document.getElementById('shopName').textContent = SHOP_NAME + ' 주문하기';
+document.title = SHOP_NAME + ' 주문하기';
+
+var PRODUCTS = [];   // [{name, price, desc}]
+var QTY = {};        // {name: qty}
+
+/* --------- JSONP 호출 --------- */
+function jsonp(params){
+  return new Promise(function(resolve, reject){
+    var cb = 'cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    var timer = setTimeout(function(){ cleanup(); reject(new Error('timeout')); }, 15000);
+    function cleanup(){ clearTimeout(timer); delete window[cb]; if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb] = function(res){ cleanup(); resolve(res); };
+    var q = Object.keys(params).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    var s = document.createElement('script');
+    s.src = API_URL + '?' + q + '&callback=' + cb;
+    s.onerror = function(){ cleanup(); reject(new Error('network')); };
+    document.body.appendChild(s);
+  });
+}
+
+/* --------- 상품 로드 --------- */
+function loadProducts(){
+  jsonp({ action:'products' }).then(function(res){
+    PRODUCTS = (res && res.products) || [];
+    renderProducts();
+  }).catch(function(){
+    document.getElementById('prodList').innerHTML =
+      '<div class="empty-prod">상품을 불러오지 못했습니다. 새로고침 해주세요.</div>';
+  });
+}
+
+function renderProducts(){
+  var box = document.getElementById('prodList');
+  if(!PRODUCTS.length){ box.innerHTML = '<div class="empty-prod">등록된 상품이 없습니다.</div>'; return; }
+  box.innerHTML = '';
+  PRODUCTS.forEach(function(p){
+    QTY[p.name] = QTY[p.name] || 0;
+    var row = document.createElement('div');
+    row.className = 'prod';
+    row.innerHTML =
+      '<div class="prod-info">'+
+        '<div class="prod-name">'+esc(p.name)+'</div>'+
+        (p.desc ? '<div class="prod-desc">'+esc(p.desc)+'</div>' : '')+
+        '<div class="prod-price">'+p.price.toLocaleString()+'원</div>'+
+      '</div>'+
+      '<div class="stepper">'+
+        '<button type="button">−</button>'+
+        '<input class="qty" value="0" readonly>'+
+        '<button type="button">+</button>'+
+      '</div>'+
+      '<div class="prod-sub">0원</div>';
+    var btns = row.querySelectorAll('.stepper button');
+    var qtyEl = row.querySelector('.qty');
+    var subEl = row.querySelector('.prod-sub');
+    btns[0].onclick = function(){ changeQty(p, -1, qtyEl, subEl); };
+    btns[1].onclick = function(){ changeQty(p, 1, qtyEl, subEl); };
+    box.appendChild(row);
+  });
+  recalc();
+}
+
+function changeQty(p, delta, qtyEl, subEl){
+  var q = (QTY[p.name] || 0) + delta;
+  if(q < 0) q = 0;
+  if(q > 999) q = 999;
+  QTY[p.name] = q;
+  qtyEl.value = q;
+  subEl.textContent = (p.price*q).toLocaleString() + '원';
+  recalc();
+}
+
+function recalc(){
+  var total = 0, qty = 0, lines = [];
+  PRODUCTS.forEach(function(p){
+    var q = QTY[p.name] || 0;
+    if(q>0){ total += p.price*q; qty += q; lines.push({name:p.name, qty:q, sub:p.price*q}); }
+  });
+  var sm = document.getElementById('summary');
+  if(!lines.length){ sm.innerHTML = '<div class="summary-row"><span>선택한 상품이 없습니다</span><span></span></div>'; }
+  else {
+    sm.innerHTML = lines.map(function(l){
+      return '<div class="summary-row"><span>'+esc(l.name)+' x'+l.qty+'</span><span>'+l.sub.toLocaleString()+'원</span></div>';
+    }).join('') + '<div class="summary-row total"><span>총 '+qty+'개</span><span>'+total.toLocaleString()+'원</span></div>';
+  }
+  document.getElementById('barTotal').textContent = total.toLocaleString();
+  document.getElementById('payBtn').disabled = (total<=0);
+  window._total = total; window._qty = qty; window._lines = lines;
+}
+
+/* --------- 주소/UI --------- */
+function findAddr(){
+  new daum.Postcode({ oncomplete:function(data){
+    document.getElementById('zipcode').value = data.zonecode;
+    document.getElementById('addr').value = data.roadAddress || data.jibunAddress;
+    document.getElementById('addrDetail').focus();
+  }}).open();
+}
+document.getElementById('sameAsOrderer').addEventListener('change', function(){
+  document.getElementById('recvBox').style.display = this.checked ? 'none' : 'block';
+});
+
+/* --------- 결제 --------- */
+function genOrderId(){
+  var d = new Date();
+  function p(n){ return (''+n).padStart(2,'0'); }
+  return 'ORD'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+Math.floor(Math.random()*900+100);
+}
+
+function startPayment(){
+  var name = val('ordererName'), phone = val('ordererPhone');
+  var same = document.getElementById('sameAsOrderer').checked;
+  var recvName = same ? name : val('receiverName');
+  var recvPhone = same ? phone : val('receiverPhone');
+  var addr = val('addr'), addrDetail = val('addrDetail'), zip = val('zipcode'), memo = val('memo');
+
+  if(!name){ return toast('주문자명을 입력해주세요'); }
+  if(!/^01[016789]-?\d{3,4}-?\d{4}$/.test(phone.replace(/\s/g,''))){ return toast('연락처를 정확히 입력해주세요'); }
+  if(!same && !recvName){ return toast('받는 분 성함을 입력해주세요'); }
+  if(!addr){ return toast('주소를 입력해주세요'); }
+  if(!window._total || window._total<=0){ return toast('상품을 선택해주세요'); }
+
+  var orderId = genOrderId();
+  var items = window._lines.map(function(l){ return { name:l.name, qty:l.qty }; });
+  var orderName = window._lines[0].name + (window._lines.length>1 ? ' 외 '+(window._lines.length-1)+'건' : (window._qty>1?' 외':''));
+  if(orderName.length>90) orderName = orderName.substring(0,90);
+
+  showLoading('주문 접수 중…');
+  jsonp({
+    action:'order', orderId:orderId,
+    ordererName:name, ordererPhone:phone,
+    receiverName:recvName, receiverPhone:recvPhone,
+    zipcode:zip, addr:addr, addrDetail:addrDetail, memo:memo,
+    items: JSON.stringify(items)
+  }).then(function(res){
+    if(!res || !res.success){ hideLoading(); return toast((res&&res.message)||'주문 접수에 실패했습니다'); }
+    // 서버가 재계산한 금액으로 결제
+    var amount = res.amount;
+    try{ localStorage.setItem('lastOrder', JSON.stringify({orderId:orderId, name:name, amount:amount})); }catch(e){}
+    requestToss(orderId, orderName, amount, name, phone);
+  }).catch(function(){ hideLoading(); toast('네트워크 오류. 다시 시도해주세요'); });
+}
+
+function requestToss(orderId, orderName, amount, name, phone){
+  showLoading('결제창으로 이동 중…');
+  try{
+    var tossPayments = TossPayments(TOSS_CLIENT_KEY);
+    var payment = tossPayments.payment({ customerKey: TossPayments.ANONYMOUS });
+    var base = location.href.replace(/[^\/]*$/, '');  // 현재 폴더 URL
+    payment.requestPayment({
+      method: 'CARD',
+      amount: { currency:'KRW', value: amount },
+      orderId: orderId,
+      orderName: orderName,
+      successUrl: base + 'success.html',
+      failUrl: base + 'fail.html',
+      customerName: name,
+      customerMobilePhone: phone.replace(/[^0-9]/g,'')
+    }).catch(function(err){
+      hideLoading();
+      if(err && err.code === 'USER_CANCEL'){ toast('결제가 취소되었습니다'); }
+      else { toast((err&&err.message)||'결제를 시작할 수 없습니다'); }
+    });
+  }catch(e){ hideLoading(); toast('결제 모듈 오류: 클라이언트 키를 확인해주세요'); }
+}
+
+/* --------- 헬퍼 --------- */
+function val(id){ return (document.getElementById(id).value||'').trim(); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function toast(m){ var t=document.getElementById('toast'); t.textContent=m; t.style.display='block'; clearTimeout(window._tt); window._tt=setTimeout(function(){t.style.display='none';},2500); }
+function showLoading(m){ document.getElementById('loadingMsg').textContent=m||'처리 중…'; document.getElementById('loadingOv').style.display='flex'; }
+function hideLoading(){ document.getElementById('loadingOv').style.display='none'; }
+
+loadProducts();
+</script>
+</body>
+</html>

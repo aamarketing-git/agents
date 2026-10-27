@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>내 주문 조회</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:linear-gradient(160deg,#e8f8e0,#e3f2fd 50%,#f3e5f5);min-height:100vh;color:#2e3a3f}
+.wrap{max-width:600px;margin:0 auto;padding:20px 16px 40px}
+.header{text-align:center;margin-bottom:24px}
+.header h1{font-size:1.4rem;font-weight:700;color:#43a047}
+.header p{color:#607d8b;font-size:.85rem;margin-top:4px}
+.header-link{margin-top:12px}
+.header-link a{color:#43a047;text-decoration:none;font-size:.85rem;padding:8px 18px;border:2px solid #43a047;border-radius:25px;font-weight:500}
+.card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:16px}
+.card-title{font-size:1rem;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #e8f5e9;display:flex;align-items:center;gap:8px}
+.form-row{display:flex;gap:10px;margin-bottom:12px}
+.form-group{flex:1;display:flex;flex-direction:column;min-width:0}
+.form-group.name{flex:.8}.form-group.phone{flex:1.2}
+.form-group label{font-size:.75rem;font-weight:600;margin-bottom:6px}
+.form-group input{font-family:inherit;font-size:15px;padding:11px;border:1.5px solid #e0e0e0;border-radius:10px;background:#fafafa;outline:none;width:100%}
+.form-group input:focus{border-color:#43a047;background:#fff}
+.btn-search{width:100%;padding:14px;background:linear-gradient(135deg,#43a047,#66bb6a);color:#fff;border:none;border-radius:50px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-search:disabled{opacity:.6;cursor:not-allowed}
+.result{display:none}.result.active{display:block}
+.order-card{border:1px solid #e0e0e0;border-radius:12px;overflow:hidden;margin-bottom:16px}
+.order-header{background:#e8f5e9;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.order-num{font-weight:700;color:#2e7d32;font-size:.88rem;word-break:break-all}
+.order-date{font-size:.8rem;color:#607d8b}
+.order-body{padding:16px}
+.order-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:.9rem;gap:10px}
+.order-row:last-child{border-bottom:none}
+.order-row .label{color:#607d8b;flex-shrink:0}
+.order-row .value{font-weight:600;text-align:right;word-break:break-all}
+.order-row .value.amt{color:#2e7d32;font-weight:800}
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:700}
+.badge.paid{background:#e8f5e9;color:#2e7d32}
+.badge.wait{background:#fff3e0;color:#e65100}
+.badge.fail{background:#ffebee;color:#c62828}
+.receipt-btn{display:inline-block;margin-top:6px;color:#1565c0;font-size:.82rem;text-decoration:none}
+.no-result{text-align:center;padding:30px 20px;border-radius:16px;background:linear-gradient(160deg,#fff8e1,#ffecb3);border:2px solid #ffb300}
+.no-result .ic{font-size:3rem;margin-bottom:10px;display:inline-block;animation:pulse 1.4s ease-in-out infinite}
+.no-result h3{margin:4px 0 12px;font-size:1.4rem;font-weight:800;color:#e65100}
+.no-result p{font-size:.95rem;line-height:1.7;color:#5d4037}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.loading{text-align:center;padding:40px}
+.spin{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#43a047;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1 id="shopName">내 주문 조회</h1>
+    <p>주문 시 입력한 이름과 전화번호로 조회하세요</p>
+    <div class="header-link"><a href="index.html">🛒 주문하러 가기</a></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔎 이름·전화번호로 조회</div>
+    <div class="form-row">
+      <div class="form-group name"><label>이름</label><input id="qName" placeholder="홍길동"></div>
+      <div class="form-group phone"><label>전화번호</label><input id="qPhone" placeholder="010-1234-5678" inputmode="numeric"></div>
+    </div>
+    <button class="btn-search" id="searchBtn" onclick="search()">주문 조회하기</button>
+  </div>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+var API_URL = 'https://script.google.com/macros/s/여기에_배포URL/exec';
+
+function jsonp(params){
+  return new Promise(function(resolve,reject){
+    var cb='cb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var timer=setTimeout(function(){cleanup();reject(new Error('timeout'));},15000);
+    function cleanup(){clearTimeout(timer);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);}
+    window[cb]=function(r){cleanup();resolve(r);};
+    var q=Object.keys(params).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(params[k]);}).join('&');
+    var s=document.createElement('script'); s.src=API_URL+'?'+q+'&callback='+cb;
+    s.onerror=function(){cleanup();reject(new Error('network'));}; document.body.appendChild(s);
+  });
+}
+function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function search(){
+  var name=(document.getElementById('qName').value||'').trim();
+  var phone=(document.getElementById('qPhone').value||'').trim();
+  if(!name||!phone){ alert('이름과 전화번호를 모두 입력해주세요'); return; }
+  var r=document.getElementById('result');
+  r.className='result active';
+  r.innerHTML='<div class="card loading"><div class="spin"></div><p>조회 중…</p></div>';
+  document.getElementById('searchBtn').disabled=true;
+  jsonp({ action:'search', name:name, phone:phone }).then(function(res){
+    document.getElementById('searchBtn').disabled=false;
+    render((res&&res.orders)||[]);
+  }).catch(function(){
+    document.getElementById('searchBtn').disabled=false;
+    r.innerHTML='<div class="card"><p style="text-align:center;color:#c62828">조회 중 오류가 발생했습니다. 다시 시도해주세요.</p></div>';
+  });
+}
+
+function render(orders){
+  var r=document.getElementById('result');
+  if(!orders.length){
+    r.innerHTML='<div class="no-result"><div class="ic">😢</div><h3>주문 내역 없음</h3>'+
+      '<p><b>주문내역이 조회되지 않습니다.</b><br>이름과 전화번호를 다시 확인해주세요.</p></div>';
+    return;
+  }
+  r.innerHTML = orders.map(function(o){
+    var st = statusBadge(o.status);
+    var receipt = o.receipt ? '<a class="receipt-btn" href="'+esc(o.receipt)+'" target="_blank">🧾 영수증 보기</a>' : '';
+    return '<div class="order-card">'+
+      '<div class="order-header"><span class="order-num">'+esc(o.orderId)+'</span><span class="order-date">'+esc(o.date)+'</span></div>'+
+      '<div class="order-body">'+
+        '<div class="order-row"><span class="label">상태</span><span class="value">'+st+'</span></div>'+
+        '<div class="order-row"><span class="label">상품</span><span class="value">'+esc(o.items)+'</span></div>'+
+        '<div class="order-row"><span class="label">받는 분</span><span class="value">'+esc(o.receiver)+'</span></div>'+
+        '<div class="order-row"><span class="label">배송지</span><span class="value">'+esc(o.addr)+'</span></div>'+
+        '<div class="order-row"><span class="label">결제금액</span><span class="value amt">'+(parseInt(o.totalAmount)||0).toLocaleString()+'원</span></div>'+
+        (receipt?('<div style="text-align:right">'+receipt+'</div>'):'')+
+      '</div></div>';
+  }).join('');
+}
+
+function statusBadge(s){
+  if(s==='결제완료') return '<span class="badge paid">결제완료</span>';
+  if(s==='결제실패') return '<span class="badge fail">결제실패</span>';
+  if(s==='배송중'||s==='배송완료') return '<span class="badge paid">'+esc(s)+'</span>';
+  return '<span class="badge wait">'+esc(s||'결제대기')+'</span>';
+}
+
+document.getElementById('qPhone').addEventListener('keydown',function(e){ if(e.key==='Enter') search(); });
+</script>
+</body>
+</html>
