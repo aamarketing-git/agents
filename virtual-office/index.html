@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>에이전트 컴퍼니</title>
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="labels"></div>
+<header id="top"><b>🏢 에이전트 컴퍼니</b><span id="clock"></span></header>
+<form id="goalForm">
+  <input id="goalInput" placeholder="CEO에게 목표를 지시하세요 (예: 신제품 런칭 페이지 만들기)" autocomplete="off">
+  <button>지시</button>
+</form>
+<aside id="side">
+  <section id="agentCard"><h3>직원</h3><div id="roster"></div></section>
+  <section><h3>업무 로그</h3><ol id="log"></ol></section>
+</aside>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
