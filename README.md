@@ -11,6 +11,7 @@
 - Vercel 배포 가이드: [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md)
 - 광고 연동(AdSense · AdMob): [docs/ADS.md](docs/ADS.md)
 - 앱 소스: [app/](app/)
+- **가계부 앱(영수증·결제 문자 자동 분류 + 구글 시트 정산)**: [ledger/](ledger/README.md)
 
 ## 바로 열기
 
