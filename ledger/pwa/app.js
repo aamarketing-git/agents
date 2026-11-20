@@ -125,7 +125,7 @@
       '<div class="stat"><small>이번 달 수입</small><b class="pos">' + won(sm.income) + '</b></div>' +
       '<div class="stat"><small>이번 달 남은 돈</small><b>' + won(sm.net) + '</b></div></div>' +
       '<div class="actions">' +
-      '<button class="act primary" data-act="receipt"><i>📷</i>영수증 찍기<small>AI가 읽고 분류</small></button>' +
+      '<button class="act primary" data-act="receipt"><i>📷</i>영수증 찍기<small>자동으로 읽고 분류</small></button>' +
       '<button class="act" data-act="paste"><i>💬</i>결제 문자 붙여넣기<small>카드·간편결제 내역</small></button>' +
       '<button class="act" data-act="expense"><i>✏️</i>지출 직접 입력<small>현금·기타</small></button>' +
       '<button class="act" data-act="income"><i>💰</i>수입 입력<small>정기 · 비정기</small></button></div>' +
@@ -190,7 +190,7 @@
       '<label class="f"><span>웹 앱 URL (Apps Script 배포 주소)</span><input type="url" id="cfgUrl" placeholder="https://script.google.com/macros/s/…/exec" value="' + esc(S.cfg.url) + '"></label>' +
       '<label class="f"><span>연결 토큰</span><input type="password" id="cfgToken" autocomplete="off" value="' + esc(S.cfg.token) + '"></label>' +
       '<div class="btns"><button class="btn primary" data-act="connect">저장하고 연결 확인</button></div>' +
-      '<p class="hint" style="margin-top:10px">' + (connected() ? (S.ai ? '✅ AI 영수증 인식 사용 가능' : '⚠️ AI 키가 없어 영수증 사진 인식은 꺼져 있어요 (스크립트 속성 ANTHROPIC_API_KEY)') : '연결 방법은 ledger/README.md 를 보세요. 연결 없이도 이 기기에서 쓸 수 있어요.') + '</p></div>' +
+      '<p class="hint" style="margin-top:10px">' + (connected() ? (S.ai ? '✅ AI 영수증 인식 사용 중' : '영수증은 폰 안에서 글자를 읽어요 (AI 키 불필요). 가끔 틀릴 수 있으니 저장 전에 확인하세요.') : '연결 방법은 ledger/README.md 를 보세요. 연결 없이도 이 기기에서 쓸 수 있어요.') + '</p></div>' +
       '<div class="card"><h2>데이터</h2><div class="btns" style="flex-wrap:wrap"><button class="btn small" data-act="sync">지금 동기화</button><button class="btn small" data-act="pull">시트에서 불러오기</button><button class="btn small" data-act="csv">CSV 내보내기</button></div>' +
       '<p class="hint" style="margin-top:10px">저장된 내역 ' + S.txs.length + '건 · 학습된 분류 규칙 ' + S.rules.length + '개<br>정기수입(월급 등)은 시트의 <b>정기수입</b> 탭에 적어 두면 매월 자동 등록돼요. 분류 규칙·카테고리도 시트 탭에서 고칠 수 있어요.</p></div>' +
       '<div class="card"><details class="how"><summary>📲 문자·알림 자동 전달 (선택)</summary>' +
@@ -342,22 +342,42 @@
       return cv.toDataURL('image/jpeg', 0.82).split(',')[1];
     });
   }
-  function startReceipt() {
-    if (!connected() || !S.ai) {
-      var why = !connected() ? '구글 시트 연결' : 'AI 키 설정(ANTHROPIC_API_KEY)';
-      var p = openSheet('<h3>영수증 자동 인식</h3><p class="hint">영수증 사진을 AI가 읽으려면 <b>' + why + '</b>이 필요해요. 설정 탭에서 연결할 수 있어요. 지금은 직접 입력으로 기록할 수 있어요.</p><div class="btns"><button class="btn" id="a">설정 열기</button><button class="btn primary" id="b">직접 입력</button></div>');
-      p.querySelector('#a').addEventListener('click', function () { closeSheet(); setTab('settings'); });
-      p.querySelector('#b').addEventListener('click', function () { var d = blank('지출'); d.source = '영수증'; openEditor(d); });
-      return;
-    }
-    $('#photo').click();
+  function startReceipt() { $('#photo').click(); }
+  // 키 없이 폰 안에서 글자 읽기(Tesseract.js, 첫 사용 때 한글 데이터 약 수 MB 내려받음)
+  var ocrLoading;
+  function loadOcr() {
+    if (window.Tesseract) return Promise.resolve();
+    return ocrLoading || (ocrLoading = new Promise(function (res, rej) {
+      var sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+      sc.onload = res; sc.onerror = function () { ocrLoading = null; rej(new Error('글자 인식 모듈을 불러오지 못했어요. 인터넷 연결을 확인하세요')); };
+      document.head.appendChild(sc);
+    }));
+  }
+  function ocrReceipt(file, setMsg) {
+    setMsg('글자 인식 모듈 준비 중…');
+    return loadOcr().then(function () { return toJpegBase64(file, 1800); }).then(function (b64) {
+      return Tesseract.createWorker('kor+eng', 1, { logger: function (m) { if (m.status === 'recognizing text') setMsg('글자 읽는 중… ' + Math.round(m.progress * 100) + '%'); else if (/loading/.test(m.status)) setMsg('한글 데이터 내려받는 중…'); } })
+        .then(function (w) { return w.recognize('data:image/jpeg;base64,' + b64).then(function (r) { return w.terminate().then(function () { return r.data.text; }); }); });
+    }).then(function (text) {
+      var r = C.parseReceiptText(text, today());
+      if (!r.ok) throw new Error('영수증에서 금액을 읽지 못했어요. 밝은 곳에서 영수증을 펴고 다시 찍어 주세요.');
+      var d = { kind: '지출', amount: r.amount, merchant: r.merchant, date: r.date, time: r.time, method: r.method, memo: '', source: '영수증', category: '기타', categorySource: 'default' };
+      var hit = C.categorize(d.merchant, S.rules);
+      if (hit) { d.category = hit.category; d.categorySource = hit.source; }
+      return d;
+    });
   }
   $('#photo').addEventListener('change', function (e) {
     var f = e.target.files && e.target.files[0]; e.target.value = '';
     if (!f) return;
-    var p = openSheet('<h3>영수증 읽는 중…</h3><p class="hint"><span class="spin"></span>사진을 줄여서 AI에게 보내고 있어요 (10~20초)</p>');
-    toJpegBase64(f).then(function (b64) { return api('receipt', { image: b64, mime: 'image/jpeg' }, 90000); })
-      .then(function (r) { openEditor(r.draft); })
+    var useAi = connected() && S.ai;
+    var p = openSheet('<h3>영수증 읽는 중…</h3><p class="hint"><span class="spin"></span><span id="ocrMsg">' + (useAi ? '사진을 AI에게 보내고 있어요 (10~20초)' : '폰에서 직접 글자를 읽어요 (처음엔 1분 정도)') + '</span></p>');
+    var setMsg = function (m) { var el = p.querySelector('#ocrMsg'); if (el) el.textContent = m; };
+    var job = useAi
+      ? toJpegBase64(f).then(function (b64) { return api('receipt', { image: b64, mime: 'image/jpeg' }, 90000); }).then(function (r) { return r.draft; })
+      : ocrReceipt(f, setMsg);
+    job.then(function (draft) { openEditor(draft); })
       .catch(function (err) {
         var p2 = openSheet('<h3>읽지 못했어요</h3><p class="hint">' + esc(err.message) + '</p><div class="btns"><button class="btn" id="a">직접 입력</button><button class="btn primary" id="b">다시 찍기</button></div>');
         p2.querySelector('#a').addEventListener('click', function () { var d = blank('지출'); d.source = '영수증'; openEditor(d); });

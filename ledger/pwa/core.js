@@ -179,6 +179,63 @@
     return res;
   }
 
+
+  // ---------- 영수증 OCR 텍스트 파싱 (AI 없이) ----------
+  function parseReceiptText(raw, today) {
+    today = today || ymd(new Date());
+    var lines = String(raw || '').replace(/\r/g, '').split('\n').map(function (l) { return l.replace(/[ \t]+/g, ' ').trim(); }).filter(Boolean);
+    var res = { ok: false, amount: 0, merchant: '', date: today, time: '', method: '', confidence: 0 };
+    if (!lines.length) return res;
+    var num = function (s) { return parseInt(String(s).replace(/[^0-9]/g, ''), 10) || 0; };
+    var amtRe = /(\d{1,3}(?:[,.]\d{3})+|\d{3,9})/g;
+
+    // 금액: 합계 계열 키워드가 있는 줄 우선, 없으면 가장 큰 금액
+    var KEY = /합\s*계|총\s*액|결제\s*금액|받을\s*금액|청구\s*금액|승인\s*금액|카드\s*결제|총\s*결제|TOTAL/i;
+    var SKIP = /부가세|과세|면세|공급가|VAT|거스름|받은\s*금액|포인트|잔액|전화|TEL|사업자|승인\s*번호|카드\s*번호/i;
+    var best = 0, fallback = 0, m;
+    lines.forEach(function (l, i) {
+      var found = [];
+      amtRe.lastIndex = 0;
+      while ((m = amtRe.exec(l))) found.push(num(m[1]));
+      if (!found.length) return;
+      if (KEY.test(l) && !SKIP.test(l)) {
+        var v = found[found.length - 1];
+        if (!found.length || v < 100) return;
+        best = Math.max(best, v);
+      } else if (!SKIP.test(l) && !/\d{2,4}[-.\/]\d{1,2}[-.\/]\d{1,2}/.test(l) && !/\d{2,3}-\d{3,4}-\d{4}/.test(l)) {
+        found.forEach(function (v) { if (v >= 100 && v < 100000000) fallback = Math.max(fallback, v); });
+      }
+    });
+    res.amount = best || fallback;
+
+    // 날짜/시간
+    var dm = /(20\d{2})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/.exec(raw) || /(?:^|\D)(\d{2})[-./](\d{1,2})[-./](\d{1,2})(?!\d)/.exec(raw);
+    if (dm) {
+      var yy = +dm[1] < 100 ? 2000 + (+dm[1]) : +dm[1];
+      if (+dm[2] >= 1 && +dm[2] <= 12 && +dm[3] >= 1 && +dm[3] <= 31) res.date = yy + '-' + pad(+dm[2]) + '-' + pad(+dm[3]);
+    }
+    var tm = /(\d{1,2}):(\d{2})/.exec(raw);
+    if (tm && +tm[1] < 24) res.time = pad(+tm[1]) + ':' + tm[2];
+
+    // 결제수단
+    if (/현금/.test(raw) && !/카드/.test(raw)) res.method = '현금';
+    else { var cm = /(KB국민|국민|신한|삼성|현대|롯데|하나|우리|BC|비씨|NH농협|농협|씨티)\s*카드/.exec(raw); if (cm) res.method = cm[0].replace(/\s+/g, ''); }
+
+    // 상호: '상호/매장명' 라벨 값, 없으면 위쪽에서 숫자·잡음이 적은 첫 줄
+    var lab = /(?:상\s*호|매장\s*명|가맹점\s*명?)\s*[:：]?\s*(.+)/.exec(raw);
+    var mer = lab ? lab[1].trim() : '';
+    if (!mer) {
+      for (var i = 0; i < Math.min(lines.length, 8); i++) {
+        var l = lines[i];
+        if (/[가-힣A-Za-z]{2,}/.test(l) && !/영수증|카드|전표|승인|사업자|전화|TEL|주소|대표|고객|판매|\d{3}-\d{2}-\d{5}/i.test(l) && (l.replace(/[^0-9]/g, '').length / l.length) < 0.3) { mer = l; break; }
+      }
+    }
+    res.merchant = mer.replace(/[\[\]()|_*#~`]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
+    res.ok = res.amount > 0;
+    res.confidence = res.ok ? (res.merchant ? 0.7 : 0.4) : 0;
+    return res;
+  }
+
   // ---------- 집계 ----------
   function summarize(txs, from, to) {
     var out = { regular: 0, irregular: 0, income: 0, expense: 0, net: 0, byCategory: {} };
@@ -205,7 +262,7 @@
     INCOME_REGULAR: INCOME_REGULAR, INCOME_IRREGULAR: INCOME_IRREGULAR,
     EXPENSE_CATEGORIES: EXPENSE_CATEGORIES, CATEGORY_ICONS: CATEGORY_ICONS, DEFAULT_RULES: DEFAULT_RULES,
     categorize: categorize, guessIncomeType: guessIncomeType, learnKeyword: learnKeyword,
-    parseMessage: parseMessage, summarize: summarize, makeId: makeId,
+    parseMessage: parseMessage, parseReceiptText: parseReceiptText, summarize: summarize, makeId: makeId,
     ymd: ymd, addDays: addDays, addMonths: addMonths, weekRange: weekRange, monthRange: monthRange
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

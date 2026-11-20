@@ -70,6 +70,31 @@ test('주·월 범위와 집계', () => {
   assert.equal(s.expense, 12000); assert.equal(s.regular, 3000000); assert.equal(s.irregular, 50000);
   assert.equal(s.net, 3038000); assert.equal(s.byCategory['식비'], 10000);
 });
+
+test('영수증 OCR 텍스트: 합계·상호·날짜·카드 추출', () => {
+  const text = `이마트 성수점
+사업자번호 123-45-67890
+전화 02-1234-5678
+2026-11-18 18:20
+우유 1L        2,500
+계란 30구      7,900
+과세물품가액   45,000
+부가세          4,500
+합 계          53,200
+신한카드 승인 53,200
+받은금액       60,000`;
+  const r = C.parseReceiptText(text, TODAY);
+  assert.equal(r.amount, 53200); assert.equal(r.merchant, '이마트 성수점');
+  assert.equal(r.date, '2026-11-18'); assert.equal(r.time, '18:20'); assert.equal(r.method, '신한카드');
+  assert.equal(C.categorize(r.merchant).category, '장보기');
+});
+test('영수증 OCR: 합계 키워드 없으면 최대 금액, 아무것도 없으면 ok=false', () => {
+  const r = C.parseReceiptText('동네식당\n김치찌개 9,000\n공기밥 1,000\n10,000', TODAY);
+  assert.equal(r.amount, 10000); assert.equal(r.merchant, '동네식당');
+  assert.equal(C.parseReceiptText('', TODAY).ok, false);
+  assert.equal(C.parseReceiptText('안녕하세요', TODAY).ok, false);
+});
+
 test('복사본(pwa/core.js, apps-script/Core.gs)이 원본과 같다', () => {
   const src = readFileSync(new URL('./core.js', import.meta.url), 'utf8');
   for (const p of ['../pwa/core.js', '../apps-script/Core.gs']) {

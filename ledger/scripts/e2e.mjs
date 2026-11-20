@@ -83,6 +83,18 @@ assert.match(stat, /3,200,000원/);
 step('수입 입력(정기수입)');
 await shot('home');
 
+// 4.5) 키·시트 없이 영수증: 기기 안 OCR(가짜 엔진) → 파싱 → 규칙 분류
+await page.route('**/tesseract.min.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `window.Tesseract={createWorker:async()=>({recognize:async()=>({data:{text:'이마트 성수점\\n2026-11-18 18:20\\n우유 2,500\\n합 계 53,200\\n신한카드 승인 53,200'}}),terminate:async()=>{}})}` }));
+await page.setInputFiles('#photo', { name: 'r.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==', 'base64') });
+await page.waitForSelector('#fSave');
+assert.equal(await page.inputValue('#fAmt'), '53,200');
+assert.equal(await page.inputValue('#fMer'), '이마트 성수점');
+assert.equal(await page.inputValue('#fCat'), '장보기');
+assert.equal(await page.inputValue('#fDate'), '2026-11-18');
+assert.equal(calls.filter((c) => c.action === 'receipt').length, 0, 'AI 서버 호출 없음');
+await page.click('#fCancel');
+step('API 키 없이 영수증: 기기 안 OCR → 금액·상호·날짜·분류');
+
 // 5) 내역/정산
 await page.click('[data-tab=list]');
 assert.match(await page.textContent('#view'), /회사 급여/);
