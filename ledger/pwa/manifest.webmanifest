@@ -1,6 +1,6 @@
 {
-  "name": "가계부",
-  "short_name": "가계부",
+  "name": "나의 MONEY 다이어리",
+  "short_name": "MONEY 다이어리",
   "description": "영수증 사진·결제 문자만 넣으면 자동 분류, 정산은 구글 시트로",
   "start_url": "./",
   "scope": "./",

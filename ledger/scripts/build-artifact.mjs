@@ -47,7 +47,7 @@ app = sub(app, "var recent = sorted()", "var demo = S.txs.some(function (t) { re
 app = sub(app, "return '<div class=\"grid2\">' +\n      '<div class=\"stat\"><small>이번 주 지출", "return demo + '<div class=\"grid2\">' +\n      '<div class=\"stat\"><small>이번 주 지출");
 
 const body = rd('index.html').match(/<body>([\s\S]*?)<script src="core.js">/)[1];
-const out = `<title>가계부</title>
+const out = `<title>나의 MONEY 다이어리</title>
 <style>${css}</style>
 ${body}
 <script>${core}</script>

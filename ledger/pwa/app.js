@@ -199,7 +199,7 @@
 
   function render() {
     var v = $('#view');
-    $('#title').textContent = { home: '가계부', list: '내역', report: '정산', settings: '설정' }[S.tab];
+    $('#title').textContent = { home: 'MONEY 다이어리', list: '내역', report: '정산', settings: '설정' }[S.tab];
     v.innerHTML = { home: viewHome, list: viewList, report: viewReport, settings: viewSettings }[S.tab]();
     paintBadge();
     document.querySelectorAll('.scroll').forEach(function (el) { el.scrollLeft = el.scrollWidth; }); // 최신 기간이 보이게
