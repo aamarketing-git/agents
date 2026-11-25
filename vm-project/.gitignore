@@ -1,0 +1,8 @@
+fonts_dl/
+input/
+out/
+work/
+remotion/node_modules
+remotion/public/*.mp4
+__pycache__/
+remotion/.cache/
