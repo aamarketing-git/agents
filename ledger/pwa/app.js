@@ -14,6 +14,8 @@
     set: function (k, v) { try { localStorage.setItem('ledger.' + k, JSON.stringify(v)); } catch (e) { /* 저장 불가 환경 */ } }
   };
 
+  var H = window.LEDGER_HOOKS || {}; // 호스팅 환경(미리보기 등)이 저장/영수증/파일저장을 대신할 때 쓰는 확장점
+
   var S = {
     txs: store.get('txs', []), deletes: store.get('deletes', []), cfg: store.get('cfg', { url: '', token: '' }),
     rules: store.get('rules', []), cats: store.get('cats', C.EXPENSE_CATEGORIES.slice()),
@@ -79,6 +81,7 @@
 
   function paintBadge() {
     var b = $('#syncBadge'); b.hidden = false;
+    if (H.badge) { b.className = 'badge ok'; b.textContent = H.badge; return; }
     if (!connected()) { b.className = 'badge'; b.textContent = '시트 미연결 · 이 기기에만 저장'; return; }
     var pending = S.txs.filter(function (t) { return !t.synced; }).length + S.deletes.length;
     b.className = 'badge' + (pending ? '' : ' ok');
@@ -105,12 +108,53 @@
       '<div class="mid"><b>' + esc(t.merchant || t.category) + '</b><small>' + sub + '</small></div>' +
       '<div class="amt ' + (shown > 0 ? 'pos' : '') + '">' + signed(shown) + '</div></div>';
   }
+  var PAL = ['#2f7d6b', '#e0a43a', '#d4475b', '#4a7bd0', '#8a5fc4', '#d9772b', '#3aa6b9', '#7a8a52', '#a8798f', '#8c8c8c'];
+  function catOrder(byCat) { return Object.keys(byCat).sort(function (a, b) { return byCat[b] - byCat[a]; }); }
+  function man(v) { return v >= 10000 ? (Math.round(v / 1000) / 10).toString().replace(/\.0$/, '') + '만' : String(Math.round(v)); }
+  function donut(byCat, total) {
+    var keys = catOrder(byCat).filter(function (k) { return byCat[k] > 0; });
+    if (!keys.length || total <= 0) return '';
+    var R = 52, CIRC = 2 * Math.PI * R, off = 0, segs = '';
+    keys.forEach(function (k, i) {
+      var len = byCat[k] / total * CIRC;
+      segs += '<circle r="' + R + '" cx="70" cy="70" fill="none" stroke="' + PAL[i % PAL.length] + '" stroke-width="22" stroke-dasharray="' + len.toFixed(2) + ' ' + (CIRC - len).toFixed(2) + '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 70 70)"><title>' + esc(k) + ' ' + nf(byCat[k]) + '원</title></circle>';
+      off += len;
+    });
+    return '<svg viewBox="0 0 140 140" width="150" height="150" role="img" aria-label="분류별 지출 비율" style="flex:none">' + segs +
+      '<text x="70" y="66" text-anchor="middle" style="fill:var(--muted);font-size:10px">총지출</text><text x="70" y="84" text-anchor="middle" style="fill:var(--text);font-size:15px;font-weight:800">' + man(total) + '원</text></svg>';
+  }
+  function barChart(cols, mode) {
+    var W = 340, Hh = 176, pl = 38, pb = 24, pt = 12, n = cols.length;
+    var max = Math.max.apply(null, cols.map(function (c) { return Math.max(c.s.income, c.s.expense); }).concat([1]));
+    var step = Math.pow(10, Math.floor(Math.log10(max))), top = Math.ceil(max / step) * step;
+    var ch = Hh - pb - pt, gw = (W - pl - 6) / n, bw = Math.min(16, gw / 2 - 3), svg = '';
+    [0, 0.5, 1].forEach(function (f) {
+      var y = pt + ch - ch * f;
+      svg += '<line x1="' + pl + '" x2="' + (W - 4) + '" y1="' + y + '" y2="' + y + '" style="stroke:var(--line)"/><text x="' + (pl - 5) + '" y="' + (y + 3.5) + '" text-anchor="end" style="fill:var(--muted);font-size:9px">' + (f ? man(top * f) : '0') + '</text>';
+    });
+    cols.forEach(function (c, i) {
+      var cx = pl + gw * i + gw / 2, hi = ch * c.s.income / top, he = ch * c.s.expense / top;
+      svg += '<rect x="' + (cx - bw - 1) + '" y="' + (pt + ch - hi) + '" width="' + bw + '" height="' + hi + '" rx="3" style="fill:var(--income)"' + (c.cur ? '' : ' opacity=".55"') + '><title>수입 ' + nf(c.s.income) + '원</title></rect>' +
+        '<rect x="' + (cx + 1) + '" y="' + (pt + ch - he) + '" width="' + bw + '" height="' + he + '" rx="3" style="fill:var(--expense)"' + (c.cur ? '' : ' opacity=".55"') + '><title>지출 ' + nf(c.s.expense) + '원</title></rect>' +
+        '<text x="' + cx + '" y="' + (Hh - 8) + '" text-anchor="middle" style="fill:var(--' + (c.cur ? 'text' : 'muted') + ');font-size:10px;font-weight:' + (c.cur ? 700 : 400) + '">' + esc(mode === 'week' ? label(mode, c.r).split('~')[0] : Number(c.r.from.slice(5, 7)) + '월') + '</text>';
+    });
+    return '<svg viewBox="0 0 ' + W + ' ' + Hh + '" width="100%" role="img" aria-label="기간별 수입과 지출">' + svg + '</svg>' +
+      '<div style="display:flex;gap:14px;font-size:12px;color:var(--muted);justify-content:center"><span><b style="color:var(--income)">■</b> 수입</span><span><b style="color:var(--expense)">■</b> 지출</span></div>';
+  }
+  function weekStrip() { // 최근 7일 일별 지출
+    var days = [], t = today(), mx = 1;
+    for (var i = 6; i >= 0; i--) { var d = C.addDays(t, -i); var v = C.summarize(S.txs, d, d).expense; days.push({ d: d, v: v }); mx = Math.max(mx, v); }
+    return '<div style="display:flex;align-items:flex-end;gap:8px;height:84px">' + days.map(function (x, i) {
+      var h = Math.max(3, Math.round(x.v / mx * 60)), dow = '일월화수목금토'[new Date(x.d + 'T00:00:00').getDay()];
+      return '<div style="flex:1;text-align:center;font-size:11px;color:var(--muted)" title="' + nf(x.v) + '원"><div style="height:' + h + 'px;border-radius:6px;background:var(--' + (i === 6 ? 'accent' : 'accent-soft') + ');margin-bottom:4px;' + (i === 6 ? '' : 'border:1px solid var(--line)') + '"></div>' + dow + '</div>';
+    }).join('') + '</div>';
+  }
   function catBars(byCat, total) {
-    var keys = Object.keys(byCat).sort(function (a, b) { return byCat[b] - byCat[a]; });
+    var keys = catOrder(byCat);
     if (!keys.length) return '<div class="empty">아직 지출이 없어요</div>';
-    return keys.map(function (k) {
+    return keys.map(function (k, i) {
       var pct = total > 0 ? Math.max(0, Math.round(byCat[k] / total * 100)) : 0;
-      return '<div class="cat"><div class="l"><span>' + icon(k) + ' ' + esc(k) + '</span><span><b>' + nf(byCat[k]) + '원</b> <small style="color:var(--muted)">' + pct + '%</small></span></div><div class="bar"><span style="width:' + pct + '%"></span></div></div>';
+      return '<div class="cat"><div class="l"><span>' + icon(k) + ' ' + esc(k) + '</span><span><b>' + nf(byCat[k]) + '원</b> <small style="color:var(--muted)">' + pct + '%</small></span></div><div class="bar"><span style="width:' + pct + '%;background:' + PAL[i % PAL.length] + '"></span></div></div>';
     }).join('');
   }
 
@@ -129,6 +173,7 @@
       '<button class="act" data-act="paste"><i>💬</i>결제 문자 붙여넣기<small>카드·간편결제 내역</small></button>' +
       '<button class="act" data-act="expense"><i>✏️</i>지출 직접 입력<small>현금·기타</small></button>' +
       '<button class="act" data-act="income"><i>💰</i>수입 입력<small>정기 · 비정기</small></button></div>' +
+      '<div class="card"><h2>최근 7일 지출</h2>' + weekStrip() + '</div>' +
       '<div class="card"><h2>최근 내역</h2>' + recent + '</div>';
   }
 
@@ -174,7 +219,8 @@
       '<div class="nav"><button data-act="rp" aria-label="이전">‹</button><b>' + label(mode, r) + (mode === 'week' ? ' (월~일)' : '') + '</b><button data-act="rn" aria-label="다음">›</button></div>' +
       '<div class="grid2"><div class="stat"><small>총수입</small><b class="pos">' + won(s.income) + '</b><small>정기 ' + nf(s.regular) + ' · 비정기 ' + nf(s.irregular) + '</small></div>' +
       '<div class="stat"><small>총지출</small><b class="neg">' + won(s.expense) + '</b><small>순수지 ' + signed(s.net) + '</small></div></div>' +
-      '<div class="card" style="margin-top:12px"><h2>분류별 지출</h2>' + catBars(s.byCategory, s.expense) + '</div>' +
+      '<div class="card" style="margin-top:12px"><h2>분류별 지출</h2><div style="display:flex;justify-content:center;margin-bottom:8px">' + donut(s.byCategory, s.expense) + '</div>' + catBars(s.byCategory, s.expense) + '</div>' +
+      '<div class="card"><h2>' + (mode === 'week' ? '최근 6주' : '최근 6개월') + ' 수입 · 지출</h2>' + barChart(cols, mode) + '</div>' +
       '<div class="card"><h2>한눈에 보기 (구글 시트 정산표와 같은 구성)</h2><div class="scroll"><table class="xl"><tr>' + head + '</tr>' +
       line('정기수입', function (x) { return x.regular ? nf(x.regular) : '-'; }) + line('비정기수입', function (x) { return x.irregular ? nf(x.irregular) : '-'; }) +
       line('<b>총지출</b>', function (x) { return x.expense ? nf(x.expense) : '-'; }) + line('<b>순수지</b>', function (x) { return (x.net < 0 ? '-' : '') + nf(x.net); }) +
@@ -279,6 +325,7 @@
     var i = S.txs.findIndex(function (t) { return t.id === tx.id; });
     if (i >= 0) S.txs[i] = tx; else S.txs.push(tx);
     save(); render();
+    if (H.onSave) H.onSave(Object.assign({}, tx, { synced: undefined, _learn: undefined }));
     toast((editing ? '수정됨' : '저장됨') + ' · ' + tx.category + (tx._learn ? ' (다음부터 ' + tx._learn + ' 은(는) 이 분류로)' : ''));
     flush();
   }
@@ -286,6 +333,7 @@
     S.txs = S.txs.filter(function (t) { return t.id !== id; });
     if (connected()) S.deletes.push(id);
     save(); flush();
+    if (H.onDelete) H.onDelete(id);
   }
 
   // ───────── 문자/알림 → 초안 ─────────
@@ -374,7 +422,7 @@
     var useAi = connected() && S.ai;
     var p = openSheet('<h3>영수증 읽는 중…</h3><p class="hint"><span class="spin"></span><span id="ocrMsg">' + (useAi ? '사진을 AI에게 보내고 있어요 (10~20초)' : '폰에서 직접 글자를 읽어요 (처음엔 1분 정도)') + '</span></p>');
     var setMsg = function (m) { var el = p.querySelector('#ocrMsg'); if (el) el.textContent = m; };
-    var job = useAi
+    var job = H.receipt ? H.receipt(f, setMsg) : useAi
       ? toJpegBase64(f).then(function (b64) { return api('receipt', { image: b64, mime: 'image/jpeg' }, 90000); }).then(function (r) { return r.draft; })
       : ocrReceipt(f, setMsg);
     job.then(function (draft) { openEditor(draft); })
@@ -390,7 +438,9 @@
     var head = ['날짜', '시간', '구분', '분류', '내용', '금액', '결제수단', '메모', '입력경로'];
     var q = function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; };
     var rows = sorted().reverse().map(function (t) { return [t.date, t.time, t.kind, t.category, t.merchant, t.amount, t.method, t.memo, t.source].map(q).join(','); });
-    var blob = new Blob(['﻿' + head.join(',') + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var csv = '\ufeff' + head.join(',') + '\n' + rows.join('\n');
+    if (H.saveFile) { H.saveFile('가계부_' + today() + '.csv', csv); return; }
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '가계부_' + today() + '.csv'; a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   }
@@ -434,5 +484,11 @@
   else if (add === 'receipt') setTimeout(startReceipt, 0);
   else if (add === 'paste') setTimeout(function () { openPaste(); }, 0);
   else if (add === 'expense') setTimeout(function () { openEditor(blank('지출')); }, 0);
+  if (H.load) H.load().then(function (remote) {
+    var have = {}; S.txs.forEach(function (t) { have[t.id] = 1; });
+    (remote || []).forEach(function (t) { if (!have[t.id]) S.txs.push(Object.assign({}, t, { synced: true })); });
+    if (remote && remote.length) S.txs = S.txs.filter(function (t) { return t.source !== '예시'; });
+    save(); if (!sheetOpen()) render();
+  }).catch(function () { /* 저장소 없음 */ });
   if (connected()) api('ping', {}, 30000).then(refreshConfig).then(pull).then(flush).catch(function () { /* 오프라인 */ }).finally(function () { if (!sheetOpen()) render(); });
 })();
