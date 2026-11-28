@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2f7d6b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MONEY 다이어리">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <title>나의 MONEY 다이어리</title>
+  <meta name="description" content="영수증·결제 문자를 찍거나 붙여넣으면 자동 분류, 주간·월간 정산은 구글 시트로">
+  <link rel="canonical" href="https://aamarketing-git.github.io/agents/ledger/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="나의 MONEY 다이어리">
+  <meta property="og:title" content="나의 MONEY 다이어리">
+  <meta property="og:description" content="영수증·결제 문자를 찍거나 붙여넣으면 자동 분류, 주간·월간 정산은 구글 시트로">
+  <meta property="og:url" content="https://aamarketing-git.github.io/agents/ledger/">
+  <meta property="og:image" content="https://aamarketing-git.github.io/agents/ledger/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="나의 MONEY 다이어리 — 영수증·결제 문자 자동 분류 가계부">
+  <meta property="og:locale" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="나의 MONEY 다이어리">
+  <meta name="twitter:description" content="영수증·결제 문자를 찍거나 붙여넣으면 자동 분류, 주간·월간 정산은 구글 시트로">
+  <meta name="twitter:image" content="https://aamarketing-git.github.io/agents/ledger/og-image.png">
+</head>
+<body>
+  <header class="top"><h1 id="title">가계부</h1><span id="syncBadge" class="badge" hidden></span></header>
+  <main id="view" aria-live="polite"></main>
+  <nav class="tabs" id="tabs">
+    <button data-tab="home" class="on"><i>🏠</i>홈</button>
+    <button data-tab="list"><i>🧾</i>내역</button>
+    <button data-tab="report"><i>📊</i>정산</button>
+    <button data-tab="settings"><i>⚙️</i>설정</button>
+  </nav>
+  <div id="sheet" class="sheet" hidden></div>
+  <div id="toast" class="toast" hidden></div>
+  <input id="photo" type="file" accept="image/*" capture="environment" hidden>
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

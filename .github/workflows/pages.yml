@@ -32,6 +32,8 @@ jobs:
           VITE_ADSENSE_CLIENT: ${{ secrets.ADSENSE_CLIENT }}
           VITE_ADSENSE_SLOT_LIST: ${{ secrets.ADSENSE_SLOT_LIST }}
           VITE_KAKAO_JS_KEY: ${{ secrets.KAKAO_JS_KEY }}
+      - name: Add ledger app (static)
+        run: mkdir -p app/dist/ledger && cp -r ledger/pwa/. app/dist/ledger/
       - uses: actions/configure-pages@v5
         with:
           enablement: true
