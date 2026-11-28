@@ -134,8 +134,8 @@
     });
     cols.forEach(function (c, i) {
       var cx = pl + gw * i + gw / 2, hi = ch * c.s.income / top, he = ch * c.s.expense / top;
-      svg += '<rect x="' + (cx - bw - 1) + '" y="' + (pt + ch - hi) + '" width="' + bw + '" height="' + hi + '" rx="3" style="fill:var(--income)"' + (c.cur ? '' : ' opacity=".55"') + '><title>수입 ' + nf(c.s.income) + '원</title></rect>' +
-        '<rect x="' + (cx + 1) + '" y="' + (pt + ch - he) + '" width="' + bw + '" height="' + he + '" rx="3" style="fill:var(--expense)"' + (c.cur ? '' : ' opacity=".55"') + '><title>지출 ' + nf(c.s.expense) + '원</title></rect>' +
+      svg += '<rect x="' + (cx - bw - 1) + '" y="' + (pt + ch - hi) + '" width="' + bw + '" height="' + hi + '" style="fill:var(--income)"' + (c.cur ? '' : ' opacity=".55"') + '><title>수입 ' + nf(c.s.income) + '원</title></rect>' +
+        '<rect x="' + (cx + 1) + '" y="' + (pt + ch - he) + '" width="' + bw + '" height="' + he + '" style="fill:var(--expense)"' + (c.cur ? '' : ' opacity=".55"') + '><title>지출 ' + nf(c.s.expense) + '원</title></rect>' +
         '<text x="' + cx + '" y="' + (Hh - 8) + '" text-anchor="middle" style="fill:var(--' + (c.cur ? 'text' : 'muted') + ');font-size:10px;font-weight:' + (c.cur ? 700 : 400) + '">' + esc(mode === 'week' ? label(mode, c.r).split('~')[0] : Number(c.r.from.slice(5, 7)) + '월') + '</text>';
     });
     return '<svg viewBox="0 0 ' + W + ' ' + Hh + '" width="100%" role="img" aria-label="기간별 수입과 지출">' + svg + '</svg>' +
@@ -146,7 +146,7 @@
     for (var i = 6; i >= 0; i--) { var d = C.addDays(t, -i); var v = C.summarize(S.txs, d, d).expense; days.push({ d: d, v: v }); mx = Math.max(mx, v); }
     return '<div style="display:flex;align-items:flex-end;gap:8px;height:84px">' + days.map(function (x, i) {
       var h = Math.max(3, Math.round(x.v / mx * 60)), dow = '일월화수목금토'[new Date(x.d + 'T00:00:00').getDay()];
-      return '<div style="flex:1;text-align:center;font-size:11px;color:var(--muted)" title="' + nf(x.v) + '원"><div style="height:' + h + 'px;border-radius:6px;background:var(--' + (i === 6 ? 'accent' : 'accent-soft') + ');margin-bottom:4px;' + (i === 6 ? '' : 'border:1px solid var(--line)') + '"></div>' + dow + '</div>';
+      return '<div style="flex:1;text-align:center;font-size:11px;color:var(--muted)" title="' + nf(x.v) + '원"><div style="height:' + h + 'px;background:var(--' + (i === 6 ? 'accent' : 'accent-soft') + ');margin-bottom:4px;' + (i === 6 ? '' : 'border:1px solid var(--line)') + '"></div>' + dow + '</div>';
     }).join('') + '</div>';
   }
   function catBars(byCat, total) {

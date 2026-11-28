@@ -1,7 +1,7 @@
 :root {
   --bg: #f5f7f6; --card: #ffffff; --text: #1b2420; --muted: #6b7873; --line: #e3e9e6;
   --accent: #2f7d6b; --accent-soft: #e3f1ed; --expense: #d4475b; --income: #2f6fde; --warn: #b7791f;
-  --radius: 16px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(20,40,34,.06);
+  --radius: 0; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(20,40,34,.06);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -16,7 +16,7 @@ body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", 
 .top { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; padding: calc(12px + env(safe-area-inset-top)) 16px 12px; background: var(--bg); }
 .top h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
 #view { padding: 0 16px 24px; max-width: 640px; margin: 0 auto; }
-.badge { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: #fff3dc; color: var(--warn); }
+.badge { font-size: 12px; padding: 4px 10px; border-radius: 0; background: #fff3dc; color: var(--warn); }
 .badge.ok { background: var(--accent-soft); color: var(--accent); }
 
 .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; }
@@ -36,7 +36,7 @@ body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", 
 
 .row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
 .row:last-child { border-bottom: 0; }
-.row .ic { width: 38px; height: 38px; border-radius: 12px; background: var(--accent-soft); display: grid; place-items: center; font-size: 20px; flex: none; }
+.row .ic { width: 38px; height: 38px; border-radius: 0; background: var(--accent-soft); display: grid; place-items: center; font-size: 20px; flex: none; }
 .row .mid { flex: 1; min-width: 0; }
 .row .mid b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 .row .mid small { color: var(--muted); font-size: 12px; }
@@ -44,15 +44,15 @@ body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", 
 .row .unsynced { color: var(--warn); font-size: 11px; }
 .day { font-size: 13px; color: var(--muted); margin: 14px 4px 6px; display: flex; justify-content: space-between; }
 
-.bar { height: 8px; border-radius: 99px; background: var(--accent-soft); overflow: hidden; margin-top: 4px; }
-.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+.bar { height: 8px; border-radius: 0; background: var(--accent-soft); overflow: hidden; margin-top: 4px; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 0; }
 .cat { padding: 8px 0; } .cat .l { display: flex; justify-content: space-between; font-size: 14px; }
 
-.seg { display: flex; background: var(--accent-soft); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 12px; }
-.seg button { flex: 1; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; padding: 9px; border-radius: 10px; }
+.seg { display: flex; background: var(--accent-soft); border-radius: 0; padding: 3px; gap: 3px; margin-bottom: 12px; }
+.seg button { flex: 1; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; padding: 9px; border-radius: 0; }
 .seg button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow); }
 .nav { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
-.nav button { border: 0; background: var(--card); color: var(--text); width: 40px; height: 40px; border-radius: 12px; font-size: 18px; box-shadow: var(--shadow); }
+.nav button { border: 0; background: var(--card); color: var(--text); width: 40px; height: 40px; border-radius: 0; font-size: 18px; box-shadow: var(--shadow); }
 .nav b { font-size: 16px; }
 
 table.xl { width: 100%; white-space: nowrap; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -70,23 +70,23 @@ table.xl tr.cur td { background: var(--accent-soft); font-weight: 700; }
 
 .sheet { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; justify-content: center; }
 .sheet[hidden], .toast[hidden], .badge[hidden] { display: none; }
-.panel { background: var(--bg); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; border-radius: 22px 22px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); }
+.panel { background: var(--bg); width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; border-radius: 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); }
 .panel h3 { margin: 0 0 12px; font-size: 18px; }
 label.f { display: block; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
 label.f > span { display: block; margin-bottom: 4px; }
 input[type=text], input[type=date], input[type=number], input[type=url], input[type=password], select, textarea {
-  width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px;
+  width: 100%; font: inherit; font-size: 16px; color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 11px 12px;
 }
 textarea { min-height: 130px; resize: vertical; }
 input.money { font-size: 26px; font-weight: 700; text-align: right; }
 .btns { display: flex; gap: 10px; margin-top: 8px; }
-.btn { flex: 1; border: 0; border-radius: 14px; padding: 14px; font: inherit; font-weight: 700; background: var(--card); color: var(--text); box-shadow: var(--shadow); }
+.btn { flex: 1; border: 0; border-radius: 0; padding: 14px; font: inherit; font-weight: 700; background: var(--card); color: var(--text); box-shadow: var(--shadow); }
 .btn.primary { background: var(--accent); color: #fff; } .btn.danger { color: var(--expense); } .btn.small { flex: none; padding: 9px 14px; font-size: 14px; }
 .hint { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
-.hint.ai { background: var(--accent-soft); color: var(--accent); border-radius: 12px; padding: 9px 12px; }
+.hint.ai { background: var(--accent-soft); color: var(--accent); border-radius: 0; padding: 9px 12px; }
 .empty { text-align: center; color: var(--muted); padding: 28px 8px; }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom)); background: #222; color: #fff; padding: 10px 16px; border-radius: 99px; font-size: 14px; z-index: 30; max-width: 90vw; text-align: center; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom)); background: #222; color: #fff; padding: 10px 16px; border-radius: 0; font-size: 14px; z-index: 30; max-width: 90vw; text-align: center; }
 .spin { display: inline-block; width: 16px; height: 16px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: sp .8s linear infinite; vertical-align: -3px; margin-right: 6px; }
 @keyframes sp { to { transform: rotate(360deg); } }
 details.how { font-size: 14px; } details.how summary { font-weight: 600; padding: 6px 0; }
-details.how pre { white-space: pre-wrap; background: var(--accent-soft); padding: 10px; border-radius: 10px; font-size: 12px; overflow-x: auto; }
+details.how pre { white-space: pre-wrap; background: var(--accent-soft); padding: 10px; border-radius: 0; font-size: 12px; overflow-x: auto; }
